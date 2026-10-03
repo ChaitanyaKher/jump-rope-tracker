@@ -434,6 +434,7 @@ function renderAnalytics(S,all,best,last,prev){
 function render(){
   const S=data().map(stats), n=S.length, last=S[n-1], prev=S[n-2];
   const all=S.flatMap(s=>s.rounds), best=Math.max(...all);
+  const labels=Array.from({length:Math.max(...S.map(s=>s.rounds.length))},(_,i)=>`R${i+1}`);
   const bestS=S.reduce((a,b)=>b.total>a.total?b:a);
   const bestAvg=S.reduce((a,b)=>b.avg>a.avg?b:a);
   const steady=S.filter(s=>s.rounds.length>=8).reduce((a,b)=>b.sd<a.sd?b:a);
