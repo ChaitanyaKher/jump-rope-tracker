@@ -2,9 +2,118 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Jump Rope Tracker</title>
+<!--
+================================================================================
+JUMP ROPE TRACKER — FUTURE CONTEXT / DESIGN & ANALYTICS STEERING
+================================================================================
+SOURCE OF TRUTH
+- This file is the canonical single-file app. Preserve its existing functionality.
+- Prefer additive, surgical changes over rewrites.
+- Do not replace the visual language with a generic dashboard/template aesthetic.
+- Keep the app static/client-side unless explicitly asked otherwise.
+- GitHub sync writes user data to data.json; never hard-code or expose credentials.
+
+PRODUCT CHARACTER
+- The product should feel like a physical training log + performance instrument,
+  not a corporate BI dashboard.
+- Tone: athletic, editorial, energetic, slightly brutalist, data-forward.
+- Prioritize fast scanning on mobile and strong hierarchy on desktop.
+- Analytics should answer: "Am I improving?", "How consistent am I?",
+  "Where do I fade?", and "What is my current ceiling?"
+
+VISUAL / STYLING STEERING
+- Keep the existing palette and CSS variables as the design system:
+    --bg   = page background
+    --tx   = primary ink/text
+    --ac2  = electric blue / secondary action
+    --ac   = red / primary accent, PR and emphasis
+    --mut  = muted explanatory text
+    --bd   = borders/dividers
+    --card = card/input surface
+    --nv   = navigation/dark surface
+    --hd   = Big Shoulders Display headline font
+- Typography: Big Shoulders Display for large numbers, labels, ranks and headings;
+  Instrument Sans for readable body copy and controls.
+- Prefer hard edges, strong borders, asymmetric/editorial layouts, compact labels,
+  large numerals, restrained shadows and purposeful motion.
+- Avoid glassmorphism, excessive rounded cards, pastel SaaS dashboards,
+  gradients used as decoration, or visually noisy chart chrome.
+- Red means achievement/emphasis; blue means structure/secondary information;
+  muted values should remain visually subordinate.
+- Dark mode must remain a first-class experience. Use CSS variables instead of
+  hard-coded light-theme colors wherever practical.
+- Preserve responsive behavior: mobile is a primary surface, desktop gets the
+  fixed navigation and wider analytical compositions.
+- Respect prefers-reduced-motion. New animation must have a reduced-motion path.
+- Interactive elements should have visible hover/focus/active states and remain
+  keyboard/touch usable.
+
+ANALYTICS / METRIC STEERING
+- Define metrics from the actual stored round data; never invent measurements.
+- A session = one logged object/day with its rounds array.
+- A round value = skips recorded for that round.
+- total skips = sum of all round values in the selected dataset/range.
+- average / round = arithmetic mean of all round values in the selected dataset.
+- median / round = median of all round values in the selected dataset.
+- personal best = maximum single-round skip count across the selected/full history,
+  and label the session/day where it occurred when useful.
+- best session = session with the highest total skips; show day and round count.
+- session average = arithmetic mean of that session's rounds.
+- session SD = sample standard deviation of that session's rounds; lower generally
+  indicates tighter round-to-round spread, but do not call it "better" by itself.
+- fatigue = compare the average of the first half of a session with the average
+  of the second half; report the percentage change explicitly.
+- recent growth/pace = compare recent-session average pace with the preceding
+  comparable block. Always show the window used; do not imply causation.
+- Consistency should use dispersion (SD) and/or session-to-session stability,
+  not merely number of workouts completed.
+- Distribution charts should expose the shape of round performance, not only a
+  single average. Show median/best where useful.
+- Calendar/heatmap views should represent actual logged sessions/rounds and never
+  imply activity on dates with no stored data.
+- Range filters must affect every metric/chart that claims to represent that range.
+- Tooltips should provide exact values and enough context to understand the point.
+- Do not create a "score" that combines unrelated metrics unless the formula is
+  explicit and user-visible.
+- Avoid evaluative language such as "bad" or "poor" for performance metrics;
+  prefer descriptive terms such as "lower", "higher", "more variable", "declining".
+
+CHART / D3 STEERING
+- D3 is for custom analytical interaction and SVG compositions; Chart.js may be
+  retained where it already works well.
+- Favor direct labels, crosshairs, hover states, compact axes and annotations over
+  legends that force users to decode the chart.
+- Charts should be useful without animation and should resize with their container.
+- Use the existing tooltip mechanism (#d3tip / tipShow / tipHide) where possible.
+- Keep chart geometry readable at ~320px mobile width.
+- Do not add 3D charts, decorative chartjunk, or misleading truncated axes.
+- When adding a new metric, expose both its definition and its data scope in the UI
+  or tooltip when the meaning is not immediately obvious.
+
+COPY / UX STEERING
+- Keep labels concise and physical: "LIFETIME SKIPS", "AVERAGE / ROUND",
+  "PERSONAL BEST", "BEST SESSION", etc.
+- Use motivational copy sparingly; the data should remain the primary signal.
+- Never fabricate coaching claims from a small sample. Phrase trends as observations.
+- Preserve the existing training-game elements (XP, levels, Skip Beat, workout
+  clock) unless the user explicitly asks to remove/change them.
+
+SAFE CHANGE RULES FOR FUTURE EDITS
+1. Read this steering block before changing styling or analytics.
+2. Inspect the current implementation before adding duplicate CSS/JS.
+3. Reuse existing variables, helpers, data structures and interaction patterns.
+4. Keep SEED, localStorage, GitHub sync, logging and workout flows compatible.
+5. Validate JavaScript syntax after substantial edits.
+6. Test both light/dark mode and mobile/desktop layouts.
+7. When changing a metric, update its definition wherever it is displayed.
+8. Return the complete index.html when the user asks for the updated file.
+================================================================================
+-->
+
 <script>try{document.documentElement.dataset.theme=localStorage.jr_theme||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light")}catch(e){document.documentElement.dataset.theme="light"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Instrument+Sans:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <style>
 :root{--bg:#EDEFF3;--tx:#0B1530;--ac2:#1B3FE0;--ac:#F03A2E;--gd:#0B1530;--mut:#55607A;--bd:#C9CFDB;--card:#fff;--nv:#0B1530;--hd:"Big Shoulders Display","Arial Narrow",Impact,sans-serif}
 *{box-sizing:border-box}[hidden]{display:none!important}
@@ -152,6 +261,12 @@ main{overflow-x:clip}html{overflow-x:clip}
 #lu>div{position:relative}#lu small{font:700 clamp(26px,6vw,44px) var(--hd);letter-spacing:.18em}#lu b{display:block;font:900 clamp(180px,48vw,380px)/.85 var(--hd);animation:slam .8s cubic-bezier(.2,1.8,.4,1) both}
 @keyframes slam{from{transform:scale(3.2);opacity:0}}#lu span{display:block;font:700 clamp(28px,7vw,52px) var(--hd)}#lu button{background:#fff;color:#0B1530;box-shadow:4px 4px 0 #0B1530;margin:22px 0 0}
 #gxp{position:absolute;top:calc(18px + env(safe-area-inset-top));left:16px;font:900 36px var(--hd)}#gxp.pop{animation:xpb .5s cubic-bezier(.2,1.8,.4,1)}@keyframes xpb{from{transform:scale(1.7);color:#FFD23F}}
+
+/* D3 analytics */
+.analytics-head{display:flex;justify-content:space-between;gap:24px;align-items:end;border-bottom:3px solid var(--tx);padding:18px 0 14px;margin-bottom:18px}.eyebrow{font:700 13px var(--hd);letter-spacing:.16em;color:var(--ac);margin:0 0 4px}.analytics-head h2{margin:0 0 5px}.chart-filters{display:flex;gap:7px;flex-wrap:wrap}.chart-filters button{margin:0;padding:7px 13px;font-size:15px;box-shadow:none;background:transparent;color:var(--tx)}.chart-filters button.on{background:var(--tx);color:var(--bg);box-shadow:3px 3px 0 var(--ac)}
+.metric-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:22px}.metric{background:var(--card);border:2px solid var(--bd);padding:13px;min-height:108px;position:relative;overflow:hidden}.metric b{display:block;font:900 clamp(29px,4vw,48px)/.9 var(--hd);font-variant-numeric:tabular-nums}.metric span{display:block;color:var(--mut);font-size:12px;margin-top:8px}.metric small{display:block;font-size:12px;margin-top:4px;color:var(--ac2)}.metric.hot{border-color:var(--ac)}
+.analytics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.ach{background:var(--card);border-top:3px solid var(--tx);padding:14px;min-width:0}.ach.full{grid-column:1/-1}.ach-head{display:flex;justify-content:space-between;gap:14px;align-items:start}.ach h2{font-size:25px;margin:0 0 2px}.ach .hint{margin:0}.chart-tag{font:700 12px var(--hd);border:2px solid var(--bd);padding:5px 8px;white-space:nowrap}.d3cv{width:100%;min-height:250px;position:relative}.d3cv svg{display:block;width:100%;height:auto;overflow:visible}.axis path,.axis line{stroke:var(--bd)}.axis text{fill:var(--mut);font:11px "Instrument Sans",sans-serif}.gridline{stroke:var(--bd);stroke-dasharray:2 5;opacity:.7}.d3line{fill:none;stroke:var(--ac2);stroke-width:3}.d3line.latest{stroke:var(--ac)}.dot{stroke:var(--card);stroke-width:2;cursor:pointer}.dot:hover{stroke:var(--tx);stroke-width:3}.d3area{fill:var(--ac2);opacity:.1}.tooltip{position:fixed;z-index:90;pointer-events:none;background:var(--tx);color:var(--bg);padding:9px 11px;font-size:12px;line-height:1.35;box-shadow:4px 4px 0 var(--ac);max-width:220px}.tooltip b{font:700 18px var(--hd);display:block}.finger-cell{stroke:var(--card);stroke-width:2;cursor:pointer}.finger-cell:hover{stroke:var(--tx);stroke-width:3}.finger-label{font:700 11px "Instrument Sans",sans-serif;fill:var(--mut)}.pr-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.pr-card{border:2px solid var(--bd);padding:12px}.pr-card i{font-style:normal;font-size:22px}.pr-card b{display:block;font:900 31px/1 var(--hd);margin:4px 0}.pr-card span{display:block;color:var(--mut);font-size:12px}.calendar-cell{stroke:var(--card);stroke-width:2;cursor:pointer}.calendar-cell:hover{stroke:var(--tx);stroke-width:3}.calendar-month{font:700 13px var(--hd);fill:var(--tx)}.legend-dot{display:inline-block;width:9px;height:9px;margin-right:4px}.empty-chart{height:220px;display:grid;place-items:center;color:var(--mut);font:700 22px var(--hd)}
+@media(max-width:900px){.metric-grid{grid-template-columns:repeat(3,1fr)}.pr-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.analytics-head{display:block}.chart-filters{margin-top:12px}.metric-grid{grid-template-columns:repeat(2,1fr)}.analytics-grid{grid-template-columns:1fr}.ach.full{grid-column:auto}.pr-grid{grid-template-columns:1fr 1fr}.d3cv{min-height:220px}}@media(max-width:420px){.metric-grid,.pr-grid{grid-template-columns:1fr 1fr}.metric{min-height:95px;padding:10px}.metric b{font-size:32px}}
 </style></head><body>
 <div id="cur"><i></i><i></i></div>
 <header><div class="w top"><h1>Jump rope log</h1><nav><button id="b-overview">Overview</button><button id="b-go">Go</button><button id="b-log">Log</button><button id="b-charts">Charts</button><button id="b-sessions">Sessions</button></nav><div class="sb" id="sb"></div><button id="tg" aria-label="Switch light and dark mode"></button></div></header>
@@ -175,12 +290,23 @@ main{overflow-x:clip}html{overflow-x:clip}
 <div class="frow"><div><label>Repo (owner/name)</label><input id="sr" placeholder="you/jump-rope" autocapitalize="off"></div><div><label>Branch</label><input id="sb" placeholder="main" autocapitalize="off"></div><div><label>Token</label><input id="st" type="password" autocomplete="off"></div></div>
 <div class="btns"><button id="ss">Save and sync now</button></div><div id="sy"></div></details>
 <details><summary>Or paste text instead</summary><textarea id="inp" placeholder="Day 10: Oct 4, 2026 Round 1 : 90 Round 2 : 88 ..."></textarea><button class="sec" id="padd">Add pasted</button></details></section>
-<section id="t-charts" class="w" hidden><div class="cg">
-<div class="ch full"><h2>Every round, every session</h2><p class="hint">Tap a session in the legend to show or hide it. Latest is red.</p><div class="cv"><canvas id="c1"></canvas></div></div>
-<div class="ch"><h2>Average per round</h2><div class="cv"><canvas id="c2"></canvas></div></div>
-<div class="ch"><h2>Where you tire and where you finish</h2><div class="cv"><canvas id="c3"></canvas></div></div>
-<div class="ch"><h2>Volume and steadiness</h2><p class="hint">Lower standard deviation means steadier pacing.</p><div class="cv"><canvas id="c4"></canvas></div></div>
-<div class="ch"><h2>How your rounds are spread</h2><div class="cv"><canvas id="c5"></canvas></div></div></div></section>
+<section id="t-charts" class="w" hidden>
+  <div class="analytics-head">
+    <div><p class="eyebrow">TRAINING ANALYTICS</p><h2>How you're actually progressing</h2><p class="hint">Explore pace, fatigue, consistency and volume. Hover anything for detail; click a session to drill down.</p></div>
+    <div class="chart-filters" role="group" aria-label="Chart range"><button class="cf on" data-range="all">All</button><button class="cf" data-range="5">5 sessions</button><button class="cf" data-range="10">10 sessions</button></div>
+  </div>
+  <div class="metric-grid" id="ametrics"></div>
+  <div class="analytics-grid">
+    <div class="ach full"><div class="ach-head"><div><h2>Performance trajectory</h2><p class="hint">Every round plotted over time. The dashed line is the previous session.</p></div><span class="chart-tag" id="atrailtag"></span></div><div class="d3cv" id="trajectory"></div></div>
+    <div class="ach"><div class="ach-head"><div><h2>Session pace</h2><p class="hint">See where each session starts, peaks and finishes.</p></div></div><div class="d3cv" id="pace"></div></div>
+    <div class="ach"><div class="ach-head"><div><h2>Fatigue curve</h2><p class="hint">Late-round pace vs early-round pace.</p></div></div><div class="d3cv" id="fatigue"></div></div>
+    <div class="ach full"><div class="ach-head"><div><h2>Session fingerprint</h2><p class="hint">Each cell is one round. Size and intensity show your output.</p></div><span class="chart-tag" id="fingerprinttag"></span></div><div class="d3cv" id="fingerprint"></div></div>
+    <div class="ach"><div class="ach-head"><div><h2>What a normal round looks like</h2><p class="hint">Median, average and spread of every logged round.</p></div></div><div class="d3cv" id="distribution"></div></div>
+    <div class="ach"><div class="ach-head"><div><h2>Consistency</h2><p class="hint">Lower SD means tighter pacing.</p></div></div><div class="d3cv" id="consistency"></div></div>
+    <div class="ach full"><div class="ach-head"><div><h2>Training calendar</h2><p class="hint">Volume by day. Click a day to jump into that session.</p></div></div><div class="d3cv" id="calendar"></div></div>
+    <div class="ach full"><div class="ach-head"><div><h2>Personal records</h2><p class="hint">The numbers that define your current training level.</p></div></div><div class="pr-grid" id="prs"></div></div>
+  </div>
+</section>
 <section id="t-sessions" class="w" hidden><h2>Sessions, newest first</h2><div class="tw" id="sum"></div>
 <h2 style="margin-top:28px">Round heatmap</h2><p class="hint">Darker is faster. Red is your best round. Tap a row to spotlight it in the line chart.</p><div class="tw" id="heat"></div></section>
 </main>
@@ -227,11 +353,75 @@ function parse(t){
   return out;
 }
 
-let charts=[];let spot=null;
+let /* FUTURE-EDIT STEERING: keep analytics definitions aligned with the HTML steering block above. */
+const ANALYTICS_STEERING={
+  session:"one logged day/session object",
+  round:"one numeric skip count in session.rounds",
+  total:"sum(rounds)",
+  average:"mean(rounds)",
+  median:"median(all round values)",
+  personalBest:"max(all round values)",
+  bestSession:"session with max(total)",
+  variability:"sample standard deviation of session.rounds",
+  fatigue:"second-half session average vs first-half session average",
+  growth:"recent comparable session-average block vs preceding block",
+  principles:["descriptive over judgmental","actual data only","range filters affect all scoped metrics","mobile-readable","dark-mode compatible"]
+};
+charts=[];let spot=null;let analyticsRange="all";
 function stats(s){return{...s,total:sum(s.rounds),avg:avg(s.rounds),peak:Math.max(...s.rounds),min:Math.min(...s.rounds),sd:sd(s.rounds)}}
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const hue=(i,n)=>i===n-1?css("--ac"):`hsl(225,${35+i/n*50}%,${isDark()?30+i/n*45:80-i/n*42}%)`;
 
+function tipShow(html,e){let t=document.getElementById("d3tip");if(!t){t=document.createElement("div");t.id="d3tip";t.className="tooltip";document.body.appendChild(t)}t.innerHTML=html;t.style.left=Math.min(innerWidth-230,Math.max(8,e.clientX+14))+"px";t.style.top=Math.min(innerHeight-120,Math.max(8,e.clientY+14))+"px";t.hidden=false}
+function tipHide(){const t=document.getElementById("d3tip");if(t)t.hidden=true}
+function svgBase(id,h=280){const el=d3.select("#"+id);el.selectAll("*").remove();const w=Math.max(320,document.getElementById(id).clientWidth||600);const m={top:18,right:18,bottom:34,left:48};const svg=el.append("svg").attr("viewBox",`0 0 ${w} ${h}`).attr("preserveAspectRatio","xMidYMid meet");return{svg,w,h,m,iw:w-m.left-m.right,ih:h-m.top-m.bottom,g:svg.append("g").attr("transform",`translate(${m.left},${m.top})`)} }
+function axis(g,sc,orient,ticks){const a=orient==="bottom"?d3.axisBottom(sc).ticks(ticks||6):d3.axisLeft(sc).ticks(ticks||5);g.call(a).attr("class","axis");g.selectAll(".domain").attr("stroke",css("--bd"));g.selectAll("text").attr("fill",css("--mut"));return g}
+function emptyChart(id,msg){document.getElementById(id).innerHTML=`<div class="empty-chart">${msg}</div>`}
+function renderAnalytics(S,all,best,last,prev){
+  const n=S.length, range=analyticsRange==="all"?S.length:+analyticsRange, A=S.slice(Math.max(0,n-range)), maxR=Math.max(...A.map(s=>s.rounds.length),1), avgAll=avg(all), med=d3.median(all), bestS=A.reduce((a,b)=>b.total>a.total?b:a), bestRound=Math.max(...all), total=sum(all), recent=A.length>1?avg(A.slice(-Math.min(3,A.length)).map(s=>s.avg)):avgAll, prior=A.length>3?avg(A.slice(-Math.min(6,A.length),-Math.min(3,A.length)).map(s=>s.avg)):avgAll, growth=prior?((recent/prior)-1)*100:0;
+  const fatigue=s=>{const h=Math.max(1,Math.floor(s.rounds.length/2));const a=avg(s.rounds.slice(0,h)),b=avg(s.rounds.slice(h));return{early:a,late:b,pct:(b/a-1)*100}};
+  const F=A.map(fatigue), consistency=A.map(s=>({day:s.day,date:s.date,sd:s.sd,avg:s.avg}));
+  const metrics=[[total.toLocaleString(),"LIFETIME SKIPS",growth>=0?`+${growth.toFixed(1)}% recent pace`:`${growth.toFixed(1)}% recent pace`],[avgAll.toFixed(1),"AVERAGE / ROUND",`median ${med.toFixed(0)}`],[bestRound.toLocaleString(),"PERSONAL BEST",`Day ${S.find(s=>s.peak===bestRound)?.day||"—"}`],[bestS.total.toLocaleString(),"BEST SESSION",`Day ${bestS.day} · ${bestS.rounds.length} rounds`],[d3.mean(F,f=>f.pct).toFixed(1)+"%","LATE-ROUND DROP",d3.mean(F,f=>f.pct)<=0?"you finish stronger":"pace falls late"]];
+  document.getElementById("ametrics").innerHTML=metrics.map((m,i)=>`<div class="metric ${i===2?"hot":""}"><b>${m[0]}</b><span>${m[1]}</span><small>${m[2]}</small></div>`).join("");
+  document.getElementById("atrailtag").textContent=`${A.length} sessions · ${A.reduce((x,s)=>x+s.rounds.length,0)} rounds`;
+  document.getElementById("fingerprinttag").textContent=`${maxR} rounds wide`;
+  const colors={ac:css("--ac"),ac2:css("--ac2"),tx:css("--tx"),mut:css("--mut"),bd:css("--bd"),card:css("--card")};
+  // trajectory
+  {const q=svgBase("trajectory",300), flat=[];A.forEach(s=>s.rounds.forEach((v,i)=>flat.push({day:s.day,date:s.date,round:i+1,value:v,session:s})));const x=d3.scalePoint().domain(flat.map((d,i)=>i)).range([0,q.iw]);const y=d3.scaleLinear().domain([0,d3.max(flat,d=>d.value)*1.12]).nice().range([q.ih,0]);for(let i=0;i<5;i++)q.g.append("line").attr("class","gridline").attr("x1",0).attr("x2",q.iw).attr("y1",i*q.ih/4).attr("y2",i*q.ih/4);axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",5).selectAll("text").remove();axis(q.g.append("g"),y,"left",5);A.forEach((s,si)=>{const pts=s.rounds.map((v,i)=>({x:x(flat.findIndex(d=>d.day===s.day&&d.round===i+1)),y:y(v)}));q.g.append("path").datum(pts).attr("class","d3line"+(s.day===last.day?" latest":"")).attr("d",d3.line().x(d=>d.x).y(d=>d.y).curve(d3.curveMonotoneX)).attr("opacity",s.day===last.day?1:.24);q.g.selectAll(".p"+si).data(pts).enter().append("circle").attr("class","dot p"+si).attr("cx",d=>d.x).attr("cy",d=>d.y).attr("r",s.day===last.day?4:2.5).attr("fill",s.day===last.day?colors.ac:colors.ac2).attr("opacity",s.day===last.day?1:.28).on("mousemove",(e,d)=>{const idx=pts.indexOf(d),v=s.rounds[idx];tipShow(`<b>${v} skips</b>Day ${s.day} · Round ${idx+1}<br>${fmtD(s.date)}`,e)}).on("mouseleave",tipHide);});}
+  // pace
+  {const q=svgBase("pace",260),x=d3.scalePoint().domain(d3.range(1,maxR+1)).range([0,q.iw]),y=d3.scaleLinear().domain([0,d3.max(A.flatMap(s=>s.rounds))*1.1]).nice().range([q.ih,0]);axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",Math.min(maxR,8)).selectAll("text").text((d,i)=>`R${d}`);axis(q.g.append("g"),y,"left",4);A.forEach((s,si)=>{const line=s.rounds.map((v,i)=>({x:x(i+1),y:y(v)}));q.g.append("path").datum(line).attr("class","d3line"+(s.day===last.day?" latest":"")).attr("d",d3.line().x(d=>d.x).y(d=>d.y).curve(d3.curveMonotoneX)).attr("opacity",s.day===last.day?1:.16);});}
+  // fatigue
+  {const q=svgBase("fatigue",260),x=d3.scalePoint().domain(A.map(s=>"D"+s.day)).range([0,q.iw]),y=d3.scaleLinear().domain([Math.min(-20,d3.min(F,f=>f.pct)-3),Math.max(5,d3.max(F,f=>f.pct)+3)]).range([q.ih,0]);q.g.append("line").attr("x1",0).attr("x2",q.iw).attr("y1",y(0)).attr("y2",y(0)).attr("stroke",colors.bd).attr("stroke-dasharray","4 4");axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",Math.min(A.length,8));axis(q.g.append("g"),y,"left",5);const line=d3.line().x((d,i)=>x("D"+A[i].day)).y(d=>y(d.pct)).curve(d3.curveMonotoneX);q.g.append("path").datum(F).attr("class","d3line latest").attr("d",line);q.g.selectAll("circle").data(F).enter().append("circle").attr("class","dot").attr("cx" ,(d,i)=>x("D"+A[i].day)).attr("cy",d=>y(d.pct)).attr("r",4).attr("fill",d=>d.pct<0?colors.ac:colors.ac2).on("mousemove",(e,d)=>tipShow(`<b>${d.pct>=0?"+":""}${d.pct.toFixed(1)}%</b>early ${d.early.toFixed(0)} → late ${d.late.toFixed(0)}<br>Day ${A[F.indexOf(d)].day}`,e)).on("mouseleave",tipHide);}
+  // fingerprint
+  {
+    const q=svgBase("fingerprint",Math.max(190,Math.min(360,42*A.length+55)));
+    const cw=q.iw/maxR;
+    const ch=Math.max(12,Math.min(30,q.ih/Math.max(A.length,1)-5));
+    const lo=d3.min(A.flatMap(s=>s.rounds)), hi=d3.max(A.flatMap(s=>s.rounds));
+    const scale=d3.scaleLinear().domain([lo,hi]).range([colors.ac2,colors.ac]);
+    q.g.selectAll(".finger-row").data(A).enter().append("text").attr("class","finger-label").attr("x",-8).attr("y",(d,i)=>i*ch+ch*.7).attr("text-anchor","end").text(d=>`D${d.day}`);
+    A.forEach((s,ri)=>{
+      s.rounds.forEach((v,ci)=>{
+        q.g.append("rect")
+          .attr("class","finger-cell")
+          .attr("x",ci*cw).attr("y",ri*ch)
+          .attr("width",Math.max(2,cw-2)).attr("height",Math.max(8,ch-2))
+          .attr("fill",scale(v))
+          .on("mousemove",e=>tipShow(`<b>${v} skips</b>Day ${s.day} · Round ${ci+1}<br>${fmtD(s.date)}`,e))
+          .on("mouseleave",tipHide)
+          .on("click",()=>{spot=s.day;show("sessions")});
+      });
+    });
+  }
+  // distribution
+  {const q=svgBase("distribution",260),bins=d3.bin().thresholds(9)(all.map(Number)),x=d3.scaleLinear().domain([bins[0].x0,d3.max(bins,b=>b.x1)]).range([0,q.iw]),y=d3.scaleLinear().domain([0,d3.max(bins,b=>b.length)]).nice().range([q.ih,0]);axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",5);axis(q.g.append("g"),y,"left",4);q.g.selectAll("rect").data(bins).enter().append("rect").attr("x",b=>x(b.x0)+1).attr("y",b=>y(b.length)).attr("width",b=>Math.max(1,x(b.x1)-x(b.x0)-2)).attr("height",b=>q.ih-y(b.length)).attr("fill",colors.ac2).attr("opacity",.75).on("mousemove",(e,b)=>tipShow(`<b>${b.length} rounds</b>${Math.round(b.x0)}–${Math.round(b.x1)} skips`,e)).on("mouseleave",tipHide);[[med,"Median"],[avgAll,"Average"],[bestRound,"Best"]].forEach((d,i)=>{q.g.append("line").attr("x1",x(d[0])).attr("x2",x(d[0])).attr("y1",0).attr("y2",q.ih).attr("stroke",i===2?colors.ac:colors.tx).attr("stroke-width",2).attr("stroke-dasharray",i===1?"4 4":null);q.g.append("text").attr("x",x(d[0])+4).attr("y",14+i*15).attr("fill",i===2?colors.ac:colors.tx).attr("font-size",11).text(`${d[1]} ${d[0].toFixed(0)}`)});}
+  // consistency
+  {const q=svgBase("consistency",260),x=d3.scalePoint().domain(A.map(s=>"D"+s.day)).range([0,q.iw]),y=d3.scaleLinear().domain([0,d3.max(A,s=>s.sd)*1.2]).nice().range([q.ih,0]);axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",Math.min(A.length,8));axis(q.g.append("g"),y,"left",4);q.g.append("path").datum(A).attr("class","d3line").attr("d",d3.line().x(d=>x("D"+d.day)).y(d=>y(d.sd)).curve(d3.curveMonotoneX));q.g.selectAll("circle").data(A).enter().append("circle").attr("class","dot").attr("cx",d=>x("D"+d.day)).attr("cy",d=>y(d.sd)).attr("r",4).attr("fill",colors.ac2).on("mousemove",(e,d)=>tipShow(`<b>SD ${d.sd.toFixed(1)}</b>Day ${d.day}<br>Avg ${d.avg.toFixed(1)} skips`,e)).on("mouseleave",tipHide);}
+  // calendar
+  {const q=svgBase("calendar",185),by=new Map(S.map(s=>[s.date,s])),start=d3.timeMonday.floor(d3.min(S,s=>new Date(s.date+"T00:00:00"))),end=d3.timeSunday.ceil(d3.max(S,s=>new Date(s.date+"T00:00:00")));const days=d3.timeDays(start,d3.timeDay.offset(end,1)),x=d3.scaleBand().domain(d3.range(7)).range([0,q.iw]).padding(.12),y=d3.scaleBand().domain(d3.range(Math.ceil(days.length/7))).range([22,q.ih]).padding(.12),mx=d3.max(S,s=>s.total)||1;const color=d3.scaleSequential(d3.interpolateRgb(colors.bd,colors.ac2)).domain([0,mx]);q.g.selectAll("text.dow").data(["M","T","W","T","F","S","S"]).enter().append("text").attr("class","finger-label").attr("x",(_,i)=>x(i)+x.bandwidth()/2).attr("y",12).attr("text-anchor","middle").text(d=>d);q.g.selectAll("rect").data(days).enter().append("rect").attr("class","calendar-cell").attr("x",d=>x((d.getDay()+6)%7)).attr("y",d=>y(Math.floor((d-start)/864e5/7))).attr("width",x.bandwidth()).attr("height",y.bandwidth()).attr("fill",d=>{const s=by.get(d.toISOString().slice(0,10));return s?color(s.total):colors.bd}).attr("opacity",d=>by.has(d.toISOString().slice(0,10))?1:.35).on("mousemove",(e,d)=>{const s=by.get(d.toISOString().slice(0,10));tipShow(s?`<b>${s.total} skips</b>Day ${s.day}<br>${fmtD(s.date)} · ${s.rounds.length} rounds`:`<b>No session</b>${fmtD(d.toISOString().slice(0,10))}`,e)}).on("mouseleave",tipHide).on("click",(e,d)=>{const s=by.get(d.toISOString().slice(0,10));if(s){spot=s.day;show("sessions")}});}
+  // PRs
+  const pr=[['🏆','Best round',bestRound+" skips",`Day ${S.find(s=>s.peak===bestRound)?.day||"—"}`],['🔥','Best session',bestS.total.toLocaleString()+" skips",`Day ${bestS.day} · ${bestS.rounds.length} rounds`],['📏','Best average',Math.max(...S.map(s=>s.avg)).toFixed(1)+" / round",`Day ${S.reduce((a,b)=>b.avg>a.avg?b:a).day}`],['⚡','Steadiest session',`${Math.min(...S.map(s=>s.sd)).toFixed(1)} SD`,`Day ${S.reduce((a,b)=>b.sd<a.sd?b:a).day}`],['📈','Recent growth',(growth>=0?"+":"")+growth.toFixed(1)+"%","vs prior comparable sessions"],['🎯','Most rounds',Math.max(...S.map(s=>s.rounds.length))+" rounds",`Day ${S.reduce((a,b)=>b.rounds.length>a.rounds.length?b:a).day}`],['🥇','100+ rounds',all.filter(v=>v>=100).length,"logged rounds"],['🧱','Total sessions',S.length,"training days logged"]];document.getElementById("prs").innerHTML=pr.map(p=>`<div class="pr-card"><i>${p[0]}</i><b>${p[2]}</b><span>${p[1]} · ${p[3]}</span></div>`).join("");
+}
 function render(){
   const S=data().map(stats), n=S.length, last=S[n-1], prev=S[n-2];
   const all=S.flatMap(s=>s.rounds), best=Math.max(...all);
@@ -291,20 +481,7 @@ function render(){
   if(fresh.length){freshAll=[...freshAll,...fresh];setTimeout(()=>{freshAll=[]},7000);toast("Badge unlocked: "+fresh.join(", "));boom()}
   $("bd").innerHTML=B.map((b,i)=>`<div class="bg${b[3]?" on":""}${freshAll.includes(b[1])?" new":""}" style="--k:${i}"><i>${b[0]}</i><b>${b[1]}</b><span>${b[2]}</span>${b[3]||!b[4]?"":`<p class="pb"><span style="width:${Math.min(100,b[4][0]/b[4][1]*100)}%"></span></p>`}</div>`).join("");
   checkLevel(xp);
-  // charts
-  charts.forEach(x=>x.destroy());charts=[];
-  Chart.defaults.color=css("--mut");Chart.defaults.font.family="Instrument Sans,system-ui,sans-serif";Chart.defaults.aspectRatio=innerWidth<600?1.15:innerWidth<960?2:2.6;Chart.defaults.animation.duration=1100;Chart.defaults.animation.easing="easeOutQuart";Chart.defaults.borderColor=css("--bd");
-  const mk=(id,cfg)=>charts.push(new Chart(document.getElementById(id),cfg));
-  const maxR=Math.max(...S.map(s=>s.rounds.length));
-  const labels=Array.from({length:maxR},(_,i)=>"R"+(i+1));
-  mk("c1",{type:"line",data:{labels,datasets:[...S.map((s,i)=>({label:`Day ${s.day} (${fmtD(s.date)})`,data:s.rounds,borderColor:hue(i,n),backgroundColor:hue(i,n),tension:.25,hidden:i<n-3&&spot!==s.day,borderWidth:s.day===(spot||last.day)?4:2,pointRadius:3})),...(prev?[{label:`Ghost: Day ${prev.day}`,data:prev.rounds,borderColor:css("--tx"),borderDash:[6,5],borderWidth:3,pointRadius:0,tension:.25}]:[])]},options:{interaction:{mode:"nearest",intersect:false},plugins:{legend:{labels:{boxWidth:10}}},scales:{y:{title:{display:true,text:"Skips / 45s"}}}}});
-  mk("c2",{type:"bar",data:{labels:S.map(s=>"D"+s.day),datasets:[{label:"Avg skips/round",data:S.map(s=>+s.avg.toFixed(1)),backgroundColor:S.map(s=>s.day===last.day?css("--ac"):css("--ac2"))},{type:"line",label:"Peak round",data:S.map(s=>s.peak),borderColor:css("--gd"),backgroundColor:css("--gd"),tension:.25}]},options:{scales:{y:{beginAtZero:true}}}});
-  const byR=labels.map((_,i)=>{const v=S.map(s=>s.rounds[i]).filter(x=>x!=null);return{a:avg(v),n:v.length}});
-  mk("c3",{type:"bar",data:{labels,datasets:[{label:"Avg skips",data:byR.map(x=>+x.a.toFixed(1)),backgroundColor:css("--ac")}]},options:{plugins:{tooltip:{callbacks:{afterLabel:i=>`from ${byR[i.dataIndex].n} sessions`}}},scales:{y:{beginAtZero:true}}}});
-  mk("c4",{type:"bar",data:{labels:S.map(s=>"D"+s.day),datasets:[{label:"Total skips",data:S.map(s=>s.total),backgroundColor:css("--ac2"),yAxisID:"y"},{type:"line",label:"Std dev",data:S.map(s=>+s.sd.toFixed(1)),borderColor:css("--ac"),backgroundColor:css("--ac"),yAxisID:"y2",tension:.25}]},options:{scales:{y:{beginAtZero:true},y2:{position:"right",beginAtZero:true,grid:{drawOnChartArea:false}}}}});
-
-  const b0=Math.floor(Math.min(...all)/10), hist=Array(Math.floor(best/10)-b0+1).fill(0);all.forEach(v=>hist[Math.floor(v/10)-b0]++);
-  mk("c5",{type:"bar",data:{labels:hist.map((_,i)=>(b0+i)*10+"s"),datasets:[{label:"Rounds",data:hist,backgroundColor:css("--ac2")}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+  renderAnalytics(S, all, best, last, prev);
   // heatmap
   const lo=Math.min(...all),hi=best;
   const cell=v=>{if(v==null)return"<td></td>";const t=(v-lo)/(hi-lo);return v===hi?`<td class="hi">${v}</td>`:`<td style="background:rgba(${isDark()?"96,125,255":"27,63,224"},${(.05+t*.65).toFixed(2)});color:${t>.55?"#fff":"inherit"}">${v}</td>`};
@@ -396,7 +573,7 @@ addEventListener("pointerdown",e=>{if(e.target.closest&&e.target.closest("button
 let sx=0,sy=0;addEventListener("touchstart",e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
 addEventListener("touchend",e=>{if(G||e.target.closest("input,.tw,canvas,textarea,summary"))return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
   if(Math.abs(dx)<80||Math.abs(dy)>50)return;const i=tabs.findIndex(x=>!$("t-"+x).hidden)+(dx<0?1:-1);if(tabs[i])show(tabs[i])},{passive:true});
-function show(t,fx){if(!tabs.includes(t))t="overview";const pi=tabs.findIndex(x=>!$("t-"+x).hidden),ni=tabs.indexOf(t);document.documentElement.style.setProperty("--dx",(ni>=pi?36:-36)+"px");document.querySelector("nav").style.setProperty("--i",ni);tabs.forEach(x=>{$("t-"+x).hidden=x!==t;$("b-"+x).classList.toggle("on",x===t)});try{history.replaceState(null,"","#"+t)}catch(e){}scrollTo(0,0);if(["overview","charts","sessions"].includes(t))render();if(t==="sessions"){const e=$("t-sessions");e.classList.add("ani");document.querySelectorAll("#sum tr,#heat tr").forEach((r,i)=>r.style.animationDelay=Math.min(i,22)*35+"ms");setTimeout(()=>e.classList.remove("ani"),1800)}charts.forEach(c=>c.resize());if(fx)boom()}
+function show(t,fx){if(!tabs.includes(t))t="overview";const pi=tabs.findIndex(x=>!$("t-"+x).hidden),ni=tabs.indexOf(t);document.documentElement.style.setProperty("--dx",(ni>=pi?36:-36)+"px");document.querySelector("nav").style.setProperty("--i",ni);tabs.forEach(x=>{$("t-"+x).hidden=x!==t;$("b-"+x).classList.toggle("on",x===t)});try{history.replaceState(null,"","#"+t)}catch(e){}scrollTo(0,0);if(["overview","charts","sessions"].includes(t))render();if(t==="sessions"){const e=$("t-sessions");e.classList.add("ani");document.querySelectorAll("#sum tr,#heat tr").forEach((r,i)=>r.style.animationDelay=Math.min(i,22)*35+"ms");setTimeout(()=>e.classList.remove("ani"),1800)}window.jrAnalyticsResize&&window.jrAnalyticsResize();if(fx)boom()}
 tabs.forEach(x=>$("b-"+x).onclick=()=>show(x));
 const CK="jr_cfg",cfg=()=>{try{return JSON.parse(localStorage.getItem(CK))||{}}catch(e){return{}}};
 const GH=(c,q)=>fetch(`https://api.github.com/repos/${c.repo}/contents/data.json${q||""}`,{cache:"no-store",...(q&&q.method?q:{}),headers:{Authorization:"Bearer "+c.token,Accept:"application/vnd.github+json","Content-Type":"application/json"}});
@@ -483,6 +660,8 @@ const hz=document.querySelector(".hero");hz.addEventListener("pointermove",e=>{c
   hz.style.setProperty("--mx",px*100+"%");hz.style.setProperty("--my",py*100+"%");hz.style.setProperty("--px",(px-.5).toFixed(2));hz.style.setProperty("--py",(py-.5).toFixed(2))});
 addEventListener("pointerdown",e=>{const b=e.target.closest&&e.target.closest("button");if(!b||calm)return;if(getComputedStyle(b).position==="static")b.style.position="relative";b.classList.add("rpl");
   const r=b.getBoundingClientRect(),d=Math.max(r.width,r.height)*2,sp=document.createElement("span");sp.className="rip";sp.style.cssText=`width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`;b.appendChild(sp);setTimeout(()=>sp.remove(),650)});
+document.querySelectorAll(".cf").forEach(b=>b.onclick=()=>{document.querySelectorAll(".cf").forEach(x=>x.classList.remove("on"));b.classList.add("on");analyticsRange=b.dataset.range;render()});
+window.jrAnalyticsResize=()=>{if(!document.getElementById("t-charts").hidden)render()};
 render();resetForm();show(location.hash.slice(1));
 $("gn").value=data().slice(-1)[0].rounds.length;
 pull().then(r=>{remote=r.list;known=sig(r.list);render();if(![...document.querySelectorAll("#rin input")].some(i=>i.value))resetForm()}).catch(()=>{});
