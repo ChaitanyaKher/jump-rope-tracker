@@ -438,6 +438,25 @@ function intensityStyle(value,lo,hi,base=.8){return `${intensityClass(value,lo,h
 function tipRound(s,idx,value,extra=""){const change=idx?value-s.rounds[idx-1]:null,lo=Math.min(...s.rounds),hi=Math.max(...s.rounds);return `<b>${value} skips</b><span class="tip-context">Day ${s.day} · Round ${idx+1} · ${fmtD(s.date)}${extra?`<br>${extra}`:""}</span><span class="tip-context">${intensityText(value,lo,hi,"this session")}</span>${change==null?"":`<span class="tip-context">${change>=0?"▲":"▼"} ${Math.abs(change).toFixed(0)} vs previous round</span>`}<span class="tip-action">Click to drill into Day ${s.day}</span>`}
 function tipSession(s,metric,lo,hi){lo=lo??Math.min(...s.rounds);hi=hi??Math.max(...s.rounds);return `<b>Day ${s.day}</b><span class="tip-context">${fmtD(s.date)} · ${s.rounds.length} rounds</span><span class="tip-context">${metric||"Session"}: ${s.avg.toFixed(1)} skips/round · ${s.total.toLocaleString()} total</span><span class="tip-context">${intensityText(s.avg,lo,hi,"this session")}</span><span class="tip-action">Click to open drill mode</span>`}
 function drillSession(s,source="Chart"){const el=document.getElementById("adrill");if(!el)return;const mx=Math.max(...s.rounds),idx=s.rounds.indexOf(mx),h=Math.max(1,Math.floor(s.rounds.length/2)),early=avg(s.rounds.slice(0,h)),late=avg(s.rounds.slice(h)),pct=(late/early-1)*100;el.innerHTML=`<div><p class="eyebrow" style="color:var(--ac)">${source.toUpperCase()} · DRILL MODE</p><h2>Day ${s.day} — ${fmtD(s.date)}</h2><p>Round-by-round view of this session. Click another point or cell to switch sessions.</p><div class="drill-kpis"><div><b>${s.total.toLocaleString()}</b><span>TOTAL SKIPS</span></div><div><b>${s.avg.toFixed(1)}</b><span>AVG / ROUND</span></div><div><b>${mx}</b><span>PEAK · R${idx+1}</span></div><div><b>${s.sd.toFixed(1)}</b><span>SESSION SD</span></div><div><b>${pct>=0?"+":""}${pct.toFixed(1)}%</b><span>EARLY → LATE</span></div></div><div class="drill-bar"><i style="--pct:${Math.min(100,mx/140*100)}%"></i></div></div><button class="drill-close" aria-label="Close drill mode">Close</button>`;el.hidden=false;el.querySelector(".drill-close").onclick=()=>{el.hidden=true};el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"nearest"})}
+function svgBase(id,height=260){
+  const host=document.getElementById(id);
+  if(!host) throw new Error(`Missing SVG container: #${id}`);
+  host.replaceChildren();
+  const rect=host.getBoundingClientRect();
+  const width=Math.max(320,Math.round(rect.width||host.clientWidth||600));
+  const h=Math.max(160,height);
+  const margin={top:12,right:12,bottom:30,left:38};
+  const iw=Math.max(80,width-margin.left-margin.right);
+  const ih=Math.max(80,h-margin.top-margin.bottom);
+  const svg=d3.select(host).append("svg")
+    .attr("width",width)
+    .attr("height",h)
+    .attr("viewBox",`0 0 ${width} ${h}`)
+    .attr("role","img")
+    .attr("preserveAspectRatio","xMidYMid meet");
+  const g=svg.append("g").attr("transform",`translate(${margin.left},${margin.top})`);
+  return{host,svg,g,width,height:h,iw,ih,margin};
+}
 function axis(g,sc,orient,ticks){const a=orient==="bottom"?d3.axisBottom(sc).ticks(ticks||6):d3.axisLeft(sc).ticks(ticks||5);g.call(a).attr("class","axis");g.selectAll(".domain").attr("stroke",css("--bd"));g.selectAll("text").attr("fill",css("--mut"));return g}
 function emptyChart(id,msg){document.getElementById(id).innerHTML=`<div class="empty-chart">${msg}</div>`}
 function renderAnalytics(S,all,best,last,prev){
