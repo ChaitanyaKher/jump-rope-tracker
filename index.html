@@ -136,6 +136,61 @@ INTENSITY / VISUAL SIGNAL STEERING
   and declare whether the scope is round-level, session-level, directional-signal, or
   explicit progress. This keeps animation, glow, size and copy consistent across the app.
 
+METRIC DISCOVERY STEERING
+- Treat the stored rounds and session dates as an observation surface, not just a source for
+  the metrics already listed above. Whenever a future edit reveals a stable, interpretable
+  signal that can answer a training question (trajectory, durability, workload, recovery
+  rhythm, ceiling, repeatability, warm-up behavior, comparable-session movement, etc.),
+  evaluate it for inclusion instead of silently leaving it buried in raw data.
+- A newly discovered metric may be added only when it is: (a) directly computable from
+  stored data, (b) interpretable without hidden assumptions, (c) materially useful to one
+  of the product questions, and (d) not a duplicate of an existing metric.
+- Every newly added metric MUST appear as an explicit visible metric label, not only as a
+  chart axis, tooltip, color, animation, or prose observation. The UI must also state why
+  it exists, using a visible “WHY IT EXISTS” explanation or equivalent metric-definition
+  ledger entry. Its formula/data scope must be discoverable.
+- Prefer a small number of strong metrics over a growing KPI wall. If a candidate metric
+  cannot change interpretation or decision-making, leave it out and record the reason in
+  code comments/steering rather than adding dashboard noise.
+- Before adding a metric, check whether changing session length, missing sessions, range
+  selection, or sample size could create a false signal. Show the comparison window when
+  relevant and never imply causation from observational data.
+- Future analytical work should periodically re-scan the raw data model for observable
+  signals that are currently absent from the product, then either promote a justified
+  candidate to an explicit metric or deliberately reject it with a reason.
+
+PERSONAL RECORD / TROPHY STEERING
+- Trophy Case is a career layer, not a duplicate KPI grid. It should answer: what have I
+  achieved, what defines my training identity, what record is closest, and what changed
+  most recently. Prefer milestones with narrative context over generic badges.
+- Personal Records must be explicit records derived from actual stored sessions/rounds.
+  Each record needs a visible label, value, date/session context, and a short WHY IT EXISTS
+  explanation. Never hide a new record inside a tooltip or animation only.
+- Separate absolute records (highest round, highest session total) from structural records
+  (best average, best 3/5-round block, best finish, best repeatability). Structural records
+  must state their window/eligibility so they cannot be mistaken for absolute records.
+- Add near-records only when they are actionable and clearly labeled, e.g. "NEXT RECORD"
+  with the exact gap. Do not turn every small improvement into an achievement.
+- Personalization should come from the user's actual history: training signature, strongest
+  pattern, latest breakthrough, closest record, favorite/most-used session length, and
+  unlocked milestone history. Do not infer personality or traits unrelated to training data.
+- New trophy animations may celebrate a newly unlocked record, but the animation must never
+  be the only indication that a record exists. Respect reduced-motion preferences.
+- Keep the trophy system descriptive rather than judgmental. A locked trophy means only
+  "not reached yet", not "bad" or "behind".
+
+OVERVIEW / COMMAND CENTER STEERING
+- The Overview is the product's decision surface, not a miniature copy of Charts.
+- Its hierarchy is: CURRENT POSITION -> TRAJECTORY -> NEXT REFERENCE -> TRAINING RHYTHM -> CONTEXT -> PERSONAL HISTORY.
+- Desktop space should be intentionally occupied by a few strong compositions rather than many narrow columns. Use asymmetric 12-column-style layouts, full-width sections, and dense-but-readable editorial blocks.
+- The Overview should answer in under five seconds: "How did I do?", "Am I on my observed path?", "What should I expect next?", and "What changed recently?".
+- Do not put every available metric on Overview. Detailed distributions, calendars, fingerprints, and record-book depth belong to Charts/Sessions.
+- Corner notes are a prioritized observation feed. Limit visible notes to the few observations that can alter interpretation or what the user notices next; do not dump the entire analytical ledger into the home view.
+- Weekly goals are a training-rhythm context, not a performance score. Keep them visually separate from trajectory status.
+- The next-session reference must be explicitly labeled as historical/projection-based unless the user has set an explicit target. Never silently turn a projection into a coaching prescription.
+- Personalization should be visible through current position, recent breakthrough, training signature, session-length context, and next reference—not decorative personalization.
+- Every Overview metric must remain traceable to a definition in the analytics model. If a new signal is promoted to Overview, it must have an explicit label and visible reason for existence.
+
 CHART / D3 STEERING
 - D3 is for custom analytical interaction and SVG compositions; Chart.js may be
   retained where it already works well.
@@ -155,6 +210,119 @@ COPY / UX STEERING
 - Never fabricate coaching claims from a small sample. Phrase trends as observations.
 - Preserve the existing training-game elements (XP, levels, Skip Beat, workout
   clock) unless the user explicitly asks to remove/change them.
+
+CROSS-VIEW / TAB STEERING
+- The data model is the single source of truth. All tabs must derive from data(), stats(),
+  trajectoryModel(), comparableSet(), recordBook() and shared helpers rather than maintaining
+  separate copies of the same calculation. If a metric changes, change its definition/helper once.
+- Think of the product as one training system with multiple jobs, not five independent pages:
+    Overview = DECIDE / understand the current state
+    Go       = EXECUTE / perform the next session
+    Log      = RECORD / create or correct source data
+    Charts   = EXPLORE / investigate patterns and trajectory
+    Sessions = AUDIT / inspect exactly how the history was built
+  Trophy/records are a career layer inside Overview/Charts, not a sixth competing dashboard.
+- Every persisted-data change must propagate consistently:
+    new session or edited session -> Overview current state + trajectory + rhythm, Charts data
+    and trajectory, Sessions ledger/heatmap, Personal Records/Trophy state when affected, and
+    global header context. Never let one tab show stale derived values after render().
+- A new analytical metric does NOT automatically belong on every tab. Promote it only when its
+  job requires it. Charts may contain deep analysis; Overview may surface at most the small subset
+  that changes the user's immediate interpretation. Sessions should show it only when it helps
+  audit a session. Go should avoid analytical clutter. Log should focus on input correctness.
+- If a metric is shown in multiple places, use the same name, formula, scope and formatting.
+  Example: CURRENT PACE always means the same average/round definition; PERSONAL BEST always
+  means the same selected/full-history scope stated by that surface. Never silently redefine a term
+  to fit a card.
+- Cross-view promotion rules:
+    * latest session changes -> Overview hero/current position, header context, Charts latest point,
+      Sessions newest row
+    * trajectory changes -> Overview position/next reference, Charts trajectory, Sessions trajectory
+      column; do not invent a separate trajectory formula in any tab
+    * new personal record -> Personal Records/Trophy Case owns the full celebration; Overview may
+      show one concise recent-breakthrough or record signal, but should not duplicate the record wall
+    * weekly goal changes -> Overview training rhythm only; it is not a performance metric and should
+      not alter trajectory/records/charts unless the data itself changes
+    * chart range changes -> Charts only by default; never mutate the global current/latest state or
+      make Overview appear filtered
+    * editing/deleting data -> rerender every affected derived surface from source data
+    * theme/accessibility/reduced-motion -> applies globally across all tabs
+- Overview owns the narrative; Charts owns the evidence; Sessions owns the ledger; Log owns the
+  source record; Go owns execution. If two surfaces compete to answer the same question, keep the
+  richer version in the owning tab and link/drill to it from the other.
+
+TAB-SPECIFIC STEERING
+- OVERVIEW / COMMAND CENTER
+  - First question: What is true about my training right now?
+  - Show current pace, observed trajectory position, next historical reference, training rhythm,
+    and a small set of high-value signals. It is allowed to summarize Charts, never replace it.
+  - Desktop should feel like a command center with a few dominant compositions, not a KPI wall.
+  - The hero can celebrate the latest session, but must remain traceable to the same latest session
+    shown in Charts and Sessions.
+  - Corner notes are a ranked interpretation feed. Keep it short and non-redundant with the charts.
+  - Trophy Case/records are the career layer and should sit after the immediate decision content.
+
+- GO / WORKOUT
+  - First question: What am I doing now?
+  - Prioritize clock, round number, work/rest state, skip entry, completion and recovery from an
+    interrupted workout. Do not turn this surface into analytics.
+  - On completion, write one canonical session and then let the shared render path update every
+    other surface. Do not manually patch Overview/Charts/Sessions independently.
+
+- LOG / SOURCE RECORD
+  - First question: What exactly did I record?
+  - This is the authoritative input/edit surface. Optimize for fast entry, validation, correction
+    and sync. Derived metrics are supporting context only.
+  - Editing a session must recalculate every dependent metric; never preserve stale cached values.
+  - Sync state belongs here. The header must never masquerade as sync status unless explicitly labeled.
+
+- CHARTS / PERFORMANCE STORY
+  - First question: Why does the history look this way?
+  - Own trajectory analysis, durability, workload, comparable sessions, distributions, calendar,
+    fingerprints and the record book. Range filters are local to this surface unless explicitly
+    promoted as a global scope control in a future redesign.
+  - Every new chart must answer a training question and expose its metric definition/scope.
+  - Charts may reveal a signal for Overview promotion, but the signal must pass the metric-discovery
+    and cross-view promotion rules before appearing there.
+
+- SESSIONS / TRAINING LEDGER
+  - First question: How was the current story built?
+  - Own chronological inspection, session-level comparison, round history and drill-down. It is the
+    audit trail for Charts and Overview, not a second analytics dashboard.
+  - Session status, trajectory gap, fatigue and comparable context must use the same helpers as Charts.
+  - Keep the identifying session/date column visible on narrow screens; wide data may scroll.
+
+- TROPHY / PERSONAL RECORD LAYER
+  - First question: What have I actually achieved?
+  - Own milestone celebration, explicit records, near-records and training signature.
+  - A new record may trigger a global celebration/toast, but the persistent record lives here.
+  - Never use trophy state to redefine performance metrics or trajectory status.
+
+TOP BAR / GLOBAL CONTEXT STEERING
+- The top bar is global navigation + orientation, not another analytics dashboard.
+- Desktop sidebar should show: product identity, primary navigation, one compact latest-session/current-
+  position context block, and theme control. Mobile should preserve the same hierarchy through the
+  bottom navigation plus a compact top identity/context row.
+- Remove the scrolling KPI ticker as a source of truth. It duplicates Overview, competes with the hero,
+  consumes vertical space and becomes stale-looking when a metric is promoted elsewhere. If a global
+  status is useful, show one compact, static context line using the same derived state as Overview.
+- The header may show latest session + trajectory status, but not weekly goal, chart-range-specific
+  metrics, or a rotating list of KPIs. Those belong to their owning surfaces.
+- The active tab must always be visually and semantically obvious (aria-current).
+- Do not use duplicate DOM ids for global status and form controls. Global context and sync controls
+  must have distinct identifiers and remain independently addressable.
+
+CONSISTENCY CHECK BEFORE SHIPPING
+- Ask: If I change one logged round, what screens change? The answer should be predictable:
+  source data -> shared derived state -> only the owning surfaces that consume it.
+- Ask: If I rename or redefine a metric, where is it defined? There should be one canonical
+  helper/definition plus visible copies that use that helper, not parallel formulas.
+- Ask: Does this new chart need to appear on Overview? Default answer: no. Promote only if
+  it materially changes the immediate decision surface.
+- Ask: Does this Overview number need a chart? Usually yes: it should drill to the evidence
+  or be traceable to an existing analytical surface.
+- Ask: Can the same state be interpreted differently across tabs? If yes, fix the shared
+  helper/label before adding more UI.
 
 SAFE CHANGE RULES FOR FUTURE EDITS
 1. Read this steering block before changing styling or analytics.
@@ -256,7 +424,7 @@ main>section:not([hidden]){animation:in .28s cubic-bezier(.2,.8,.2,1)}@keyframes
 @media(prefers-reduced-motion:reduce){#fl{animation:none}.rf{transition:none}}
 .hl,.hr,.ch,.cg>div,.cols>div{min-width:0}#hero{display:grid;grid-template-columns:minmax(0,1fr)}
 .cv{position:relative;width:100%;min-width:0}.cols>div{border-top:3px solid var(--tx);padding-top:12px}
-#t-go,#t-log{max-width:860px}.sb{display:none;margin-top:auto}
+#t-go,#t-log{max-width:860px}.sb{display:none;margin-top:auto}.sb span{display:block;color:var(--mut);font-size:12px;margin-top:3px}.sb .top-status-path{color:var(--ac2);font-weight:600}
 @media(max-width:600px){.strip em{font-size:10px}.strip{gap:3px}.hero{padding-top:18px}}
 @media(min-width:960px){#hero{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:0 clamp(32px,5vw,96px);align-items:end}
  .big{font-size:clamp(150px,15vw,280px)}.strip{height:200px}.hero{padding:40px 0 124px}}
@@ -270,8 +438,37 @@ main>section:not([hidden]){animation:in .28s cubic-bezier(.2,.8,.2,1)}@keyframes
  .sb{display:block;border-top:3px solid var(--tx);padding-top:10px;color:var(--mut);font-size:14px}.sb b{display:block;font:900 56px/1 var(--hd);color:var(--tx)}
  #tg{align-self:flex-start}}
 nav button{box-shadow:none;margin:0;border-radius:0}nav button:active{transform:none}
-@media(max-width:700px){nav button{font-size:18px}}
+@media(max-width:700px){
+  nav button{font-size:18px}
+  .top{height:58px;gap:8px}
+  .top h1{font-size:25px;white-space:nowrap}
+  .sb{display:block;margin:0 0 0 auto;padding:0 8px 0 10px;border-left:2px solid var(--bd);font-size:10px;line-height:1.05;min-width:0;max-width:145px}
+  .sb b{display:inline;font:900 22px/1 var(--hd);color:var(--tx);margin-right:4px}
+  .sb span{font-size:9px;line-height:1.1;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sb .top-status-path{display:block;color:var(--ac2)}
+  #tg{width:38px;height:38px;flex:0 0 auto}
+}
 @media(min-width:900px){nav button#b-go{width:100%}}
+
+/* OVERVIEW COMMAND CENTER */
+.overview-dashboard{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(320px,.85fr);gap:18px 20px;padding-top:22px;padding-bottom:42px;align-items:start}
+.overview-dashboard>section{min-width:0}
+.od-focus{grid-column:1/-1;border:3px solid var(--tx);background:var(--card);padding:18px;box-shadow:8px 8px 0 var(--ac2);position:relative;overflow:hidden}
+.od-focus::after{content:"";position:absolute;width:220px;height:220px;border:1px solid var(--ac2);border-radius:50%;right:-80px;top:-90px;opacity:.12;animation:odOrbit 7s linear infinite}.od-focus::before{content:"";position:absolute;width:90px;height:90px;border:2px solid var(--ac);border-radius:50%;right:18px;top:35px;opacity:.1;animation:odOrbit 4s linear reverse infinite}
+.od-section-head{display:flex;justify-content:space-between;gap:18px;align-items:end;margin-bottom:12px}.od-section-head h2{margin:0;font-size:29px}.od-section-head .hint{max-width:62ch;margin:4px 0 0}.od-live,.od-muted{font:700 11px var(--hd);letter-spacing:.1em;color:var(--mut);white-space:nowrap}.od-live{color:var(--ac2)}
+.eyebrow{font:700 11px var(--hd);letter-spacing:.14em;color:var(--mut);margin:0 0 4px}
+.od-focus-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr;border-top:2px solid var(--tx);border-bottom:1px solid var(--bd)}.od-focus-grid>div{padding:16px 18px 14px;border-right:1px solid var(--bd);position:relative}.od-focus-grid>div:last-child{border-right:0}.od-focus-grid small,.od-action-card small{display:block;font:700 11px var(--hd);letter-spacing:.08em;color:var(--mut)}.od-focus-grid b{display:block;font:900 clamp(42px,6vw,72px)/.85 var(--hd);font-variant-numeric:tabular-nums;margin:7px 0}.od-focus-grid span{font-size:12px;color:var(--mut)}.od-current b{color:var(--tx)}.od-status b{color:var(--ac2)}.od-status.behind b{color:var(--ac)}.od-next-ref b{color:var(--ac)}
+.od-progress{padding:13px 0 0}.od-progress>div:first-child{display:flex;justify-content:space-between;align-items:center}.od-progress>div:first-child span{font:700 11px var(--hd);letter-spacing:.1em;color:var(--mut)}.od-progress>div:first-child b{font:900 22px var(--hd)}.od-progress-line{height:8px;background:var(--bd);margin:6px 0;position:relative;overflow:hidden}.od-progress-line::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--tx);opacity:.35}.od-progress-line i{display:block;height:100%;width:50%;background:var(--ac2);transform-origin:left;transition:width .9s cubic-bezier(.2,.8,.2,1);animation:odSweep 1.2s ease-out both}.od-progress small{color:var(--mut);font-size:12px}
+.od-week,.od-baseline,.od-notes,.od-action,.od-break{background:transparent;border-top:3px solid var(--tx);padding:12px 0 0}.od-week{grid-column:2}.od-baseline{grid-column:1}.od-notes{grid-column:1}.od-action{grid-column:2}.od-break{grid-column:2}.od-week-grid{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;align-items:center}.od-week #wk{min-width:0}.od-week #wk p{font-size:13px}.od-week .ring{width:150px}.od-small-btn{font-size:15px;padding:6px 11px;margin:0;box-shadow:none}
+.od-baseline .life{grid-template-columns:repeat(4,1fr);gap:0 12px}.od-baseline .life div{border-top:2px solid var(--bd);padding:9px 0 10px}.od-baseline .life b{font-size:35px}.od-baseline .life span{font-size:11px}.od-baseline .life div:nth-child(n+5){display:none}
+.od-notes ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 22px}.od-notes li{font-size:13px;padding:9px 0 9px 21px}.od-notes li::before{top:9px}.od-notes li:nth-child(n+7){display:none}
+.od-action-card{display:grid;grid-template-columns:1.2fr 1fr 1fr;border:2px solid var(--tx);background:var(--card)}.od-action-card>div{padding:14px;border-right:1px solid var(--bd)}.od-action-card>div:last-child{border-right:0}.od-action-card b{display:block;font:900 29px/1 var(--hd);margin:5px 0}.od-action-card span{display:block;font-size:11px;color:var(--mut)}.od-action>button{margin-top:12px}
+.od-break p{max-width:44ch;color:var(--mut);margin:5px 0 8px}.od-break button{margin-top:5px}.trophy-overhaul{grid-column:1/-1;border-top:3px solid var(--tx);padding-top:12px;margin-top:6px}
+@keyframes odSweep{from{transform:scaleX(0)}}@keyframes odOrbit{to{transform:rotate(360deg)}}
+@media(max-width:900px){.overview-dashboard{grid-template-columns:1fr}.od-focus,.od-week,.od-baseline,.od-notes,.od-action,.od-break,.trophy-overhaul{grid-column:1}.od-baseline .life{grid-template-columns:repeat(2,1fr)}.od-notes ul{grid-template-columns:1fr}.od-focus-grid{grid-template-columns:1fr}.od-focus-grid>div{border-right:0;border-bottom:1px solid var(--bd)}.od-focus-grid>div:last-child{border-bottom:0}.od-action-card{grid-template-columns:1fr}.od-action-card>div{border-right:0;border-bottom:1px solid var(--bd)}.od-action-card>div:last-child{border-bottom:0}}
+@media(max-width:520px){.overview-dashboard{padding-left:16px;padding-right:16px}.od-section-head{align-items:start}.od-live,.od-muted{white-space:normal;text-align:right}.od-week-grid{grid-template-columns:1fr}.od-week .ring{margin:auto}.od-baseline .life{grid-template-columns:1fr 1fr}.od-baseline .life b{font-size:31px}.od-focus{padding:14px;box-shadow:5px 5px 0 var(--ac2)}}
+@media(prefers-reduced-motion:reduce){.od-focus::before,.od-focus::after,.od-progress-line i{animation:none!important}.od-progress-line i{transition:none}}
+
 html{-webkit-tap-highlight-color:transparent}
 @keyframes in{from{opacity:0;transform:translateX(var(--dx,0px))}}
 main>section:not([hidden]){animation:in .38s cubic-bezier(.2,.9,.2,1)}
@@ -295,6 +492,7 @@ main button{transition:transform .15s,box-shadow .15s}main button:hover:not(:act
 .rpl{overflow:hidden}.rip{position:absolute;border-radius:50%;background:rgba(255,255,255,.45);transform:scale(0);animation:rp .6s ease-out forwards;pointer-events:none}@keyframes rp{to{transform:scale(1);opacity:0}}
 @media(max-width:700px){nav::before{content:"";position:absolute;top:0;left:0;width:20%;height:4px;background:var(--ac);transform:translateX(calc(var(--i,0)*100%));transition:transform .45s cubic-bezier(.3,1.5,.5,1);z-index:1}
  nav button.on,nav button#b-go.on{border-top-color:transparent}.tick{font-size:17px;bottom:30px}}
+@media(max-width:700px){.trophy-title{align-items:start;flex-direction:column}.trophy-count{font-size:27px}.trophy-hero{grid-template-columns:1fr}.trophy-hero>div{border-right:0;border-bottom:1px solid var(--bd)}.trophy-hero>div:last-child{border-bottom:0}.trophy-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.record-grid{grid-template-columns:1fr}.trophy-next{align-items:start;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}#cur{display:none}}
 main{overflow-x:clip}html{overflow-x:clip}
 .rank{display:flex;gap:16px;align-items:center}.rk{flex:1;min-width:0}.rank span{margin-left:0;display:block}
@@ -308,6 +506,9 @@ main{overflow-x:clip}html{overflow-x:clip}
 .bg.on::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.5) 50%,transparent 60%);transform:translateX(-120%);animation:bsh 5s calc(var(--k,0)*.35s) infinite}@keyframes bsh{25%,100%{transform:translateX(120%)}}
 .bg:hover{transform:translateY(-4px) rotate(-1deg)}.pb{height:5px;background:var(--bd);margin:8px 0 0}.pb span{display:block;height:100%;background:var(--ac2)}
 .bg.new{border-color:var(--ac);animation:stamp .9s cubic-bezier(.2,1.6,.4,1)}@keyframes stamp{from{transform:scale(2.4) rotate(-14deg);opacity:0}}
+.trophy-overhaul{position:relative}.trophy-title{display:flex;justify-content:space-between;gap:20px;align-items:end;border-bottom:3px solid var(--tx);padding-bottom:12px;margin-bottom:12px}.trophy-count{font:900 34px/1 var(--hd);white-space:nowrap}.trophy-hero{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:0;border:2px solid var(--tx);background:var(--card);margin-bottom:14px;overflow:hidden}.trophy-hero>div{padding:14px;border-right:1px solid var(--bd);position:relative;overflow:hidden}.trophy-hero>div:last-child{border-right:0}.trophy-hero small{display:block;color:var(--mut);font:700 11px var(--hd);letter-spacing:.08em}.trophy-hero b{display:block;font:900 clamp(28px,4vw,46px)/.95 var(--hd);margin:4px 0}.trophy-hero span{font-size:12px;color:var(--mut)}.trophy-hero .signature{color:var(--ac2)}.trophy-hero .breakthrough{color:var(--ac)}.trophy-hero::after{content:"";position:absolute;pointer-events:none;width:80px;height:160%;top:-30%;right:14%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);transform:rotate(18deg) translateX(-240px);animation:heroShine 5s 1s infinite}.trophy-grid{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.trophy-grid .bg{opacity:1;min-height:145px;display:flex;flex-direction:column;justify-content:space-between}.trophy-grid .bg.locked{opacity:.42;background:transparent}.trophy-grid .bg .trophy-meta{font-size:11px;color:var(--mut);margin-top:8px}.trophy-grid .bg .trophy-progress{height:5px;background:var(--bd);margin-top:9px;overflow:hidden}.trophy-grid .bg .trophy-progress span{display:block;height:100%;background:var(--ac2);transform-origin:left;animation:barReveal 1s .15s both}.trophy-grid .bg .unlock-mark{position:absolute;right:10px;top:10px;font:900 11px var(--hd);color:var(--ac)}.trophy-next{margin-top:12px;border-left:5px solid var(--ac);background:var(--card);padding:12px;display:flex;justify-content:space-between;gap:14px;align-items:center}.trophy-next b{font:900 24px var(--hd)}.trophy-next span{display:block;color:var(--mut);font-size:12px}.records-panel{position:relative}.record-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px}.record-card{border:2px solid var(--bd);background:var(--card);padding:13px;position:relative;overflow:hidden;min-height:160px;transition:transform .25s,border-color .25s}.record-card:hover{transform:translateY(-5px);border-color:var(--tx)}.record-card.current{border-color:var(--ac);animation:recordPulse 2.8s ease-in-out infinite}.record-card .record-icon{font-size:28px;line-height:1}.record-card .record-label{display:block;font:700 13px var(--hd);letter-spacing:.08em;margin-top:8px}.record-card strong{display:block;font:900 42px/.9 var(--hd);margin:5px 0;font-variant-numeric:tabular-nums}.record-card small{display:block;color:var(--mut);font-size:12px}.record-card em{display:block;font-style:normal;color:var(--mut);font-size:11px;border-top:1px solid var(--bd);margin-top:10px;padding-top:8px}.record-card .record-date{color:var(--ac2)}.near-record{margin-top:12px;padding:12px;border:2px dashed var(--bd);background:var(--card)}.near-record b{font:900 24px var(--hd)}.near-record span{display:block;color:var(--mut);font-size:12px}.record-spark{position:absolute;right:-18px;bottom:-32px;width:110px;height:110px;border:2px solid var(--ac2);border-radius:50%;opacity:.13;animation:orb 4s ease-in-out infinite}.record-spark::after{content:"";position:absolute;inset:18px;border:2px solid var(--ac);border-radius:50%}.bg.new .unlock-mark{animation:unlockSpin 1s cubic-bezier(.2,1.7,.4,1)}
+@keyframes heroShine{0%,45%{transform:rotate(18deg) translateX(-240px)}70%,100%{transform:rotate(18deg) translateX(420px)}}@keyframes barReveal{from{transform:scaleX(0)}}@keyframes recordPulse{50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--ac) 10%,transparent)}}@keyframes unlockSpin{from{transform:rotate(-180deg) scale(0)}to{transform:none}}@keyframes orb{50%{transform:scale(1.1) rotate(25deg)}}
+
 .qs{margin-top:14px}.qs li{display:flex;gap:10px;align-items:center;padding-left:0}.qs svg{width:24px;height:24px;flex:none;fill:none;stroke-width:2}.qs circle{stroke:var(--bd)}
 .qs path{stroke:#fff;stroke-width:2.5;stroke-dasharray:20;stroke-dashoffset:20;stroke-linecap:round;stroke-linejoin:round}.qs em{margin-left:auto;font-style:normal;color:var(--mut);font-size:13px}
 .qs li.ok circle{fill:var(--ac2);stroke:var(--ac2)}.qs li.ok path{animation:chk .5s .5s forwards}@keyframes chk{to{stroke-dashoffset:0}}
@@ -382,15 +583,58 @@ main{overflow-x:clip}html{overflow-x:clip}
 .dchip b{display:block;font:900 34px/1 var(--hd)}.dchip span{font-size:12px;color:var(--mut)}.dchip.up b{color:var(--ac2)}.dchip.dn b{color:var(--ac)}
 .dbar{cursor:pointer;transition:filter .2s}.dbar:hover,.dbar:focus{filter:brightness(1.15)}
 @media(max-width:420px){#dmetric{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.trajectory-hero{margin:18px 0 8px;border:3px solid var(--tx);background:var(--card);padding:16px;display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:14px;align-items:stretch}.trajectory-status>div{border-right:1px solid var(--bd);padding:6px 14px}.trajectory-status>div:last-child{border-right:0}.trajectory-status{display:grid;grid-column:1/-1;grid-template-columns:1.5fr 1fr 1fr}.trajectory-status small,.trajectory-big small,.trajectory-status span{display:block;color:var(--mut);font-size:12px}.trajectory-status b{display:block;font:900 clamp(34px,6vw,58px)/.9 var(--hd);margin:4px 0}.trajectory-status.on b{color:var(--ac2)}.trajectory-status.ahead b{color:var(--ac2)}.trajectory-status.behind b{color:var(--ac)}.trajectory-big strong{display:block;font:900 42px/1 var(--hd)}.trajectory-status>div:last-child strong{display:block;font:900 32px/1 var(--hd);margin-top:7px}.metric{position:relative}.metric em{display:block;margin-top:7px;font:600 11px/1.25 "Instrument Sans",sans-serif;color:var(--mut);font-style:normal}.metric.ahead b{color:var(--ac2)}.metric.behind b{color:var(--ac)}.metric.on b{color:var(--ac2)}.metric-ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0;border-top:2px solid var(--tx)}.metric-ledger>div{padding:12px;border-bottom:1px solid var(--bd);border-right:1px solid var(--bd)}.metric-ledger b{display:block;font:900 22px var(--hd)}.metric-ledger span{display:block;font-size:13px;margin:5px 0;color:var(--mut)}.metric-ledger em{display:block;font-size:12px;font-style:normal}.trajectory-band{fill:var(--ac2);opacity:.08}.trajectory-trend{fill:none;stroke:var(--ac2);stroke-width:2;stroke-dasharray:7 6}.trajectory-projection{fill:none;stroke:var(--ac);stroke-width:2;stroke-dasharray:3 5}.chart-annotation{fill:var(--tx);font:700 11px var(--hd);letter-spacing:.06em}.session-head{margin-bottom:12px}.session-story{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--tx);margin:0 0 18px}.session-story>div{padding:13px;border-right:1px solid var(--bd)}.session-story>div:last-child{border-right:0}.session-story small,.session-story span{display:block;color:var(--mut);font-size:12px}.session-story b{display:block;font:900 30px/1 var(--hd);margin:3px 0}.session-row{cursor:pointer}.session-row td:first-child{background:var(--bg)}.session-row td:first-child small,.session-row td:nth-child(2) small{display:block;color:var(--mut);font-size:11px}.status-pill{display:inline-block;border:1px solid currentColor;padding:3px 6px;font:700 11px var(--hd);letter-spacing:.05em}.status-pill.on{color:var(--ac2)}.status-pill.ahead{color:var(--ac2)}.status-pill.behind{color:var(--ac)}.pbcell{background:var(--ac)!important;color:#fff}.round-details{margin-top:20px}.d3cv{min-height:160px}.ach{min-width:0}
+@media(max-width:700px){.trajectory-status{grid-template-columns:1fr}.trajectory-status>div{border-right:0;border-bottom:1px solid var(--bd);padding:10px 0}.trajectory-status>div:last-child{border-bottom:0}.trajectory-status b{font-size:42px}.session-story{grid-template-columns:1fr}.session-story>div{border-right:0;border-bottom:1px solid var(--bd)}.session-story>div:last-child{border-bottom:0}.analytics-grid{grid-template-columns:1fr!important}.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.metric em{font-size:10px}.tw{margin-left:-16px;margin-right:-16px;padding:0 16px}.session-row td{padding:8px 7px}}
+@media(max-width:380px){.metric-grid{grid-template-columns:1fr!important}.trajectory-hero{padding:10px}.trajectory-status b{font-size:34px}}
 </style></head><body>
 <div id="cur"><i></i><i></i></div>
-<header><div class="w top"><h1>Jump rope log</h1><nav aria-label="Primary navigation"><button id="b-overview" aria-controls="t-overview" aria-current="page">Overview</button><button id="b-go" aria-controls="t-go">Go</button><button id="b-log" aria-controls="t-log">Log</button><button id="b-charts" aria-controls="t-charts">Charts</button><button id="b-sessions" aria-controls="t-sessions">Sessions</button></nav><div class="sb" id="sb"></div><button id="tg" aria-label="Switch light and dark mode"></button></div></header>
+<header aria-label="Global navigation and current training context"><div class="w top"><h1>Jump rope log</h1><nav aria-label="Primary navigation"><button id="b-overview" aria-controls="t-overview" aria-current="page">Overview</button><button id="b-go" aria-controls="t-go">Go</button><button id="b-log" aria-controls="t-log">Log</button><button id="b-charts" aria-controls="t-charts">Charts</button><button id="b-sessions" aria-controls="t-sessions">Sessions</button></nav><div class="sb" id="topStatus" aria-label="Current training status"></div><button id="tg" aria-label="Switch light and dark mode"></button></div></header>
 <main>
-<section id="t-overview"><div class="hero"><div class="w" id="hero"></div><div class="tick"><div id="tick"></div></div></div>
-<div class="w cols"><div><h2>Corner notes</h2><ul id="calls"></ul></div><div><h2>All time</h2><div class="life" id="kpis"></div></div>
-<div><h2>This week</h2><div id="wk"></div><ul class="qs" id="qs"></ul></div>
-<div><h2>Take a break</h2><p>Skip Beat: hop as the rope swings under your feet. 45 seconds, like a real round. A trip costs you a beat.</p><button id="rp">Play Skip Beat</button></div>
-<div class="trophy"><h2>Trophy case</h2><div id="bd"></div></div></div></section>
+<section id="t-overview"><div class="hero"><div class="w" id="hero"></div></div>
+<div class="w overview-dashboard">
+  <section class="od-focus">
+    <div class="od-section-head"><div><p class="eyebrow">PERFORMANCE READ</p><h2>What matters right now</h2><p class="hint">One screen for your current pace, trajectory and next reference. The detail lives in Charts.</p></div><span class="od-live">LIVE FROM YOUR LOG</span></div>
+    <div class="od-focus-grid">
+      <div class="od-current"><small>CURRENT PACE</small><b id="odCurrent">—</b><span id="odCurrentMeta">latest session</span></div>
+      <div class="od-status" id="odStatus"><small>CURRENT POSITION</small><b>—</b><span>historical trajectory</span></div>
+      <div class="od-next-ref"><small>NEXT REFERENCE</small><b id="odNext">—</b><span id="odNextMeta">historical next-step pace · not a goal</span></div>
+    </div>
+    <div class="od-progress"><div><span>TRAJECTORY</span><b id="odGap">—</b></div><div class="od-progress-line"><i id="odProgressFill"></i></div><small id="odTrajectoryCopy">—</small></div>
+  </section>
+
+  <section class="od-week">
+    <div class="od-section-head"><div><p class="eyebrow">TRAINING RHYTHM</p><h2>This week</h2></div><button class="sec od-small-btn" id="wg">Change goal</button></div>
+    <div class="od-week-grid"><div id="wk"></div><div><ul class="qs" id="qs"></ul></div></div>
+  </section>
+
+  <section class="od-baseline">
+    <div class="od-section-head"><div><p class="eyebrow">CAREER BASELINE</p><h2>Your numbers</h2></div><span class="od-muted">context, not a score</span></div>
+    <div class="life" id="kpis"></div>
+  </section>
+
+  <section class="od-notes">
+    <div class="od-section-head"><div><p class="eyebrow">SIGNALS</p><h2>Corner notes</h2><p class="hint">Only the observations most useful for deciding what to notice next.</p></div><button class="sec od-small-btn" id="overviewCharts">Open analytics</button></div>
+    <ul id="calls"></ul>
+  </section>
+
+  <section class="od-action">
+    <div class="od-section-head"><div><p class="eyebrow">NEXT SESSION</p><h2>Give the next round a purpose</h2></div></div>
+    <div id="odAction"></div>
+    <button id="odGo">Start the clock</button>
+  </section>
+
+  <section class="od-break">
+    <div class="od-section-head"><div><p class="eyebrow">RESET</p><h2>Take a break</h2></div></div>
+    <p>Skip Beat: hop as the rope swings under your feet. 45 seconds, like a real round. A trip costs you a beat.</p>
+    <button id="rp">Play Skip Beat</button>
+  </section>
+
+  <section class="trophy trophy-overhaul">
+    <div class="trophy-title"><div><p class="eyebrow">CAREER WALL</p><h2>Trophy case</h2><p class="hint">Your milestones, records and training signature — all earned from the sessions you actually logged.</p></div><div id="trophyCount" class="trophy-count"></div></div>
+    <div id="trophyHero" class="trophy-hero"></div><div id="bd" class="trophy-grid"></div><div id="trophyNext" class="trophy-next"></div>
+  </section>
+</div></section>
 <section id="t-go" class="w" hidden><h2>Round clock</h2><p class="hint">Counts you in, runs each round with beeps and a bell, and keeps the screen awake. Type your skips during each rest and the log fills itself.</p>
 <div class="frow"><div><label>Rounds</label><input id="gn" type="number" inputmode="numeric" min="1" max="40"></div><div><label>Work seconds</label><input id="gw" type="number" inputmode="numeric" value="45"></div><div><label>Rest seconds</label><input id="gr" type="number" inputmode="numeric" value="15"></div></div>
 <label style="display:flex;gap:8px;align-items:center;margin-top:14px"><input type="checkbox" id="gm" checked style="width:auto"> Beeps and bell</label>
@@ -402,31 +646,27 @@ main{overflow-x:clip}html{overflow-x:clip}
 <div id="msg"></div>
 <details id="syd"><summary>Sync across devices</summary>
 <p class="hint">Saves every session to data.json in your GitHub repo so all devices see the same log. Use a fine-grained token limited to this repo with Contents set to read and write. The token stays in this browser only, so enter it once on each device where you log.</p>
-<div class="frow"><div><label>Repo (owner/name)</label><input id="sr" placeholder="you/jump-rope" autocapitalize="off"></div><div><label>Branch</label><input id="sb" placeholder="main" autocapitalize="off"></div><div><label>Token</label><input id="st" type="password" autocomplete="off"></div></div>
+<div class="frow"><div><label>Repo (owner/name)</label><input id="sr" placeholder="you/jump-rope" autocapitalize="off"></div><div><label>Branch</label><input id="syncBranch" placeholder="main" autocapitalize="off"></div><div><label>Token</label><input id="st" type="password" autocomplete="off"></div></div>
 <div class="btns"><button id="ss">Save and sync now</button></div><div id="sy"></div></details>
 <details><summary>Or paste text instead</summary><textarea id="inp" placeholder="Day 10: Oct 4, 2026 Round 1 : 90 Round 2 : 88 ..."></textarea><button class="sec" id="padd">Add pasted</button></details></section>
 <section id="t-charts" class="w" hidden>
-  <div class="analytics-head">
-    <div><p class="eyebrow">TRAINING ANALYTICS</p><h2>How you're actually progressing</h2><p class="hint">Explore pace, fatigue, consistency and volume. Tap or focus datapoints for detail; select a session to drill down.</p></div>
-    <div class="chart-filters" role="group" aria-label="Chart range"><button class="cf on" data-range="all">All</button><button class="cf" data-range="5">5 sessions</button><button class="cf" data-range="10">10 sessions</button></div>
-  </div>
+  <div class="analytics-head"><div><p class="eyebrow">PERFORMANCE STORY</p><h2>Where you were → where you are → where you're heading</h2><p class="hint">The trajectory is derived from logged sessions. It is a description of your observed path, not a made-up goal.</p></div><div class="chart-filters" role="group" aria-label="Chart range"><button class="cf on" data-range="all">All</button><button class="cf" data-range="5">5 sessions</button><button class="cf" data-range="10">10 sessions</button></div></div>
+  <div class="trajectory-hero" id="trajectoryHero"></div>
   <div class="metric-grid" id="ametrics"></div>
   <div class="analytics-drill" id="adrill" hidden></div>
   <div class="analytics-grid">
-    <div class="ach full"><div class="ach-head"><div><h2>Performance trajectory</h2><p class="hint">Every round plotted over time. The dashed line is the previous session.</p></div><span class="chart-tag" id="atrailtag"></span></div><div class="d3cv" id="trajectory"></div></div>
-    <div class="ach full"><div class="ach-head"><div><h2>Change vs previous session</h2><p class="hint">Each bar is how far that session moved from the one before it. Blue is up, red is down.</p></div><div class="chart-filters" id="dmetric" role="group" aria-label="Change metric"><button class="dm on" data-m="total">Skips</button><button class="dm" data-m="avg">Avg / round</button><button class="dm" data-m="rounds">Rounds</button><button class="dm" data-m="peak">Peak</button></div></div><div class="delta-chips" id="dchips"></div><div class="d3cv" id="delta"></div></div>
-    <div class="ach full"><div class="ach-head"><div><h2>Latest vs previous, round by round</h2><p class="hint">Each bar is this session's round minus the same round last time.</p></div><span class="chart-tag" id="drtag"></span></div><div class="d3cv" id="rdelta"></div></div>
-    <div class="ach"><div class="ach-head"><div><h2>Session pace</h2><p class="hint">See where each session starts, peaks and finishes.</p></div></div><div class="d3cv" id="pace"></div></div>
-    <div class="ach"><div class="ach-head"><div><h2>Fatigue curve</h2><p class="hint">Late-round pace vs early-round pace.</p></div></div><div class="d3cv" id="fatigue"></div></div>
-    <div class="ach full"><div class="ach-head"><div><h2>Session fingerprint</h2><p class="hint">Each cell is one round. Size and intensity show your output.</p></div><span class="chart-tag" id="fingerprinttag"></span></div><div class="d3cv" id="fingerprint"></div></div>
-    <div class="ach"><div class="ach-head"><div><h2>What a normal round looks like</h2><p class="hint">Median, average and spread of every logged round.</p></div></div><div class="d3cv" id="distribution"></div></div>
-    <div class="ach"><div class="ach-head"><div><h2>Consistency</h2><p class="hint">Lower SD means tighter pacing.</p></div></div><div class="d3cv" id="consistency"></div></div>
-    <div class="ach full"><div class="ach-head"><div><h2>Training calendar</h2><p class="hint">Volume by day. Tap or focus a logged day to open that session.</p></div></div><div class="d3cv" id="calendar"></div></div>
-    <div class="ach full"><div class="ach-head"><div><h2>Personal records</h2><p class="hint">The numbers that define your current training level.</p></div></div><div class="pr-grid" id="prs"></div></div>
+    <div class="ach full"><div class="ach-head"><div><p class="eyebrow">1 · AM I GETTING BETTER?</p><h2>Performance trajectory</h2><p class="hint">Session average per round, with your historical trend and expected next pace. The status says where the latest session sits relative to that observed trajectory.</p></div><span class="chart-tag" id="atrailtag"></span></div><div class="d3cv" id="trajectory"></div></div>
+    <div class="ach"><div class="ach-head"><div><p class="eyebrow">2 · CAN I HOLD IT?</p><h2>Durability</h2><p class="hint">Fatigue and round-to-round spread. These describe whether pace survives the session.</p></div></div><div class="d3cv" id="fatigue"></div><div class="d3cv" id="consistency"></div></div>
+    <div class="ach"><div class="ach-head"><div><p class="eyebrow">3 · HOW MUCH WORK?</p><h2>Training load</h2><p class="hint">Total skips and rounds logged. Load is context for performance, not a score.</p></div></div><div class="d3cv" id="load"></div></div>
+    <div class="ach full"><div class="ach-head"><div><h2>Comparable sessions</h2><p class="hint">Sessions with a similar round count are compared first, so a 5-round day does not masquerade as a 15-round improvement.</p></div><span class="chart-tag" id="comptag"></span></div><div class="d3cv" id="comparable"></div></div>
+    <div class="ach"><div class="ach-head"><div><h2>Round distribution</h2><p class="hint">What a typical round looks like across the selected range.</p></div></div><div class="d3cv" id="distribution"></div></div>
+    <div class="ach"><div class="ach-head"><div><h2>Session fingerprint</h2><p class="hint">Every cell is one round. Tap/focus a cell to inspect the session.</p></div><span class="chart-tag" id="fingerprinttag"></span></div><div class="d3cv" id="fingerprint"></div></div>
+    <div class="ach full"><div class="ach-head"><div><h2>Training calendar</h2><p class="hint">Only actual logged sessions appear.</p></div></div><div class="d3cv" id="calendar"></div></div>
+    <div class="ach full records-panel"><div class="ach-head"><div><p class="eyebrow">PERSONAL RECORDS</p><h2>Your record book</h2><p class="hint">Absolute peaks and repeatable patterns are kept separate. Every record shows exactly what it measures and why it exists.</p></div><span class="chart-tag" id="recordTag"></span></div><div class="record-grid" id="prs"></div><div class="near-record" id="nearRecord"></div></div>
+    <div class="ach full"><div class="ach-head"><div><h2>Metric definitions</h2><p class="hint">Every analytical metric earns a label and a reason for existing.</p></div></div><div class="metric-ledger" id="metricLedger"></div></div>
   </div>
 </section>
-<section id="t-sessions" class="w" hidden><h2>Sessions, newest first</h2><div class="tw" id="sum"></div>
-<h2 style="margin-top:28px">Round heatmap</h2><p class="hint">Darker is faster. Red is your best round. Tap a row to spotlight it in the line chart.</p><div class="tw" id="heat"></div></section>
+<section id="t-sessions" class="w" hidden><div class="session-head"><div><p class="eyebrow">TRAINING LEDGER</p><h2>How you got here</h2><p class="hint">Newest first. Each row shows performance, movement against the observed trajectory, and the session signals behind it.</p></div></div><div class="session-story" id="sessionStory"></div><div class="tw" id="sum"></div><details class="round-details"><summary>Round-by-round history</summary><p class="hint">Darker cells represent higher round values within this history. Red marks the personal-best round.</p><div class="tw" id="heat"></div></details></section>
 </main>
 <div id="gstage" hidden data-ph="ready" role="dialog" aria-modal="true" aria-labelledby="glab"><button id="gend" aria-label="End workout">End</button><div id="gxp"></div><div id="grd"></div><div id="glab"></div><div id="gclock"></div><div id="gbox" hidden><input id="gin" type="number" inputmode="numeric" placeholder="Skips"><div id="gcmp"></div><button id="gok">Finish and review</button></div><div id="gprog"><u></u></div></div>
 <div id="lu" hidden role="dialog" aria-modal="true" aria-labelledby="lut"><div><small>Level up</small><b id="lub"></b><span id="lut"></span><button id="lux">Keep going</button></div></div>
@@ -483,6 +723,12 @@ const ANALYTICS_STEERING={
   variability:"sample standard deviation of session.rounds",
   fatigue:"second-half session average vs first-half session average",
   growth:"recent comparable session-average block vs preceding block",
+  metricDiscovery:{
+    rule:"scan stored rounds/session dates for stable observable signals that answer a training question",
+    admission:["directly computable","interpretable","materially useful","non-duplicate"],
+    display:"every admitted new metric must have an explicit visible label, formula/scope, and WHY IT EXISTS explanation",
+    restraint:"do not add a metric when it only adds dashboard noise or depends on unsupported assumptions"
+  },
   intensity:{
     purpose:"visual signal only, never a performance score",
     bands:"LOW <50%, MEDIUM 50-79%, HIGH >=80%",
@@ -493,6 +739,23 @@ const ANALYTICS_STEERING={
     channels:"size + pulse timing + opacity + glow; same helper and thresholds site-wide"
   },
   principles:["descriptive over judgmental","actual data only","range filters affect all scoped metrics","mobile-readable","320px-safe","touch-and-keyboard accessible","dark-mode compatible","shared intensity system"]
+};
+const VIEW_STEERING={
+  overview:{job:"decide",question:"What is true about my training right now?",owns:["current pace","trajectory position","next historical reference","training rhythm","prioritized signals","career layer"]},
+  go:{job:"execute",question:"What am I doing now?",owns:["work/rest clock","round execution","skip entry","completion"]},
+  log:{job:"record",question:"What exactly did I record?",owns:["source session data","validation","editing","sync"]},
+  charts:{job:"explore",question:"Why does the history look this way?",owns:["trajectory","durability","load","comparables","distribution","fingerprint","calendar","records"]},
+  sessions:{job:"audit",question:"How was the current story built?",owns:["chronology","session comparison","round history","drill-down"]},
+  global:{job:"orient",owns:["navigation","latest session context","current trajectory status","theme"]},
+  propagation:{
+    sessionChange:["overview","charts","sessions","global","records-if-affected"],
+    trajectoryChange:["overview","charts","sessions","global"],
+    recordChange:["charts-records","overview-breakthrough","global-context-if-relevant"],
+    weeklyGoalChange:["overview"],
+    chartRangeChange:["charts-only"],
+    themeOrAccessibilityChange:["all"]
+  },
+  principle:"one source of truth, one formula, multiple purposeful views"
 };
 charts=[];let spot=null;let analyticsRange="all";let deltaMetric="total";
 function stats(s){return{...s,total:sum(s.rounds),avg:avg(s.rounds),peak:Math.max(...s.rounds),min:Math.min(...s.rounds),sd:sd(s.rounds)}}
@@ -533,93 +796,154 @@ function svgBase(id,height=260){
 }
 function axis(g,sc,orient,ticks){const a=orient==="bottom"?d3.axisBottom(sc).ticks(ticks||6):d3.axisLeft(sc).ticks(ticks||5);g.call(a).attr("class","axis");g.selectAll(".domain").attr("stroke",css("--bd"));g.selectAll("text").attr("fill",css("--mut"));return g}
 function emptyChart(id,msg){document.getElementById(id).innerHTML=`<div class="empty-chart">${msg}</div>`}
-function renderAnalytics(S,all,best,last,prev){
-  const n=S.length, range=analyticsRange==="all"?S.length:+analyticsRange, A=S.slice(Math.max(0,n-range)), scopedAll=A.flatMap(s=>s.rounds), maxR=Math.max(...A.map(s=>s.rounds.length),1), avgAll=avg(scopedAll), med=d3.median(scopedAll), bestS=A.reduce((a,b)=>b.total>a.total?b:a), bestRound=Math.max(...scopedAll), total=sum(scopedAll), recent=A.length>1?avg(A.slice(-Math.min(3,A.length)).map(s=>s.avg)):avgAll, prior=A.length>3?avg(A.slice(-Math.min(6,A.length),-Math.min(3,A.length)).map(s=>s.avg)):avgAll, growth=prior?((recent/prior)-1)*100:0;
-  const fatigue=s=>{const h=Math.max(1,Math.floor(s.rounds.length/2));const a=avg(s.rounds.slice(0,h)),b=avg(s.rounds.slice(h));return{early:a,late:b,pct:(b/a-1)*100}};
-  const F=A.map(fatigue), consistency=A.map(s=>({day:s.day,date:s.date,sd:s.sd,avg:s.avg}));
-  const metrics=[[total.toLocaleString(),"LIFETIME SKIPS",growth>=0?`+${growth.toFixed(1)}% recent pace`:`${growth.toFixed(1)}% recent pace`],[avgAll.toFixed(1),"AVERAGE / ROUND",`median ${med.toFixed(0)}`],[bestRound.toLocaleString(),"PERSONAL BEST",`Day ${S.find(s=>s.peak===bestRound)?.day||"—"}`],[bestS.total.toLocaleString(),"BEST SESSION",`Day ${bestS.day} · ${bestS.rounds.length} rounds`],[d3.mean(F,f=>f.pct).toFixed(1)+"%","LATE-ROUND DROP",d3.mean(F,f=>f.pct)<=0?"you finish stronger":"pace falls late"]];
-  document.getElementById("ametrics").innerHTML=metrics.map((m,i)=>`<div class="metric ${i===2?"hot":""}"><b>${m[0]}</b><span>${m[1]}</span><small>${m[2]}</small></div>`).join("");
-  document.getElementById("atrailtag").textContent=`${A.length} sessions · ${A.reduce((x,s)=>x+s.rounds.length,0)} rounds`;
-  document.getElementById("fingerprinttag").textContent=`${maxR} rounds wide`;
-  const grid=document.querySelector(".analytics-grid");if(grid){grid.classList.remove("analytics-live");grid.querySelectorAll(".ach").forEach((el,i)=>el.style.setProperty("--chart-i",i));requestAnimationFrame(()=>grid.classList.add("analytics-live"))}
-  document.querySelectorAll("#ametrics .metric").forEach((el,i)=>{const b=el.querySelector("b");if(b)b.animate([{opacity:0,transform:"translateY(12px)"},{opacity:1,transform:"translateY(0)"}],{duration:650,delay:i*80,easing:"cubic-bezier(.2,.8,.2,1)",fill:"both"})});
-  const colors={ac:css("--ac"),ac2:css("--ac2"),tx:css("--tx"),mut:css("--mut"),bd:css("--bd"),card:css("--card")};
-  // trajectory
-  try{const q=svgBase("trajectory",300), flat=[];A.forEach(s=>s.rounds.forEach((v,i)=>flat.push({day:s.day,date:s.date,round:i+1,value:v,session:s})));const x=d3.scalePoint().domain(flat.map((d,i)=>i)).range([0,q.iw]);const y=d3.scaleLinear().domain([0,d3.max(flat,d=>d.value)*1.12]).nice().range([q.ih,0]);for(let i=0;i<5;i++)q.g.append("line").attr("class","gridline").attr("x1",0).attr("x2",q.iw).attr("y1",i*q.ih/4).attr("y2",i*q.ih/4);axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",5).selectAll("text").remove();axis(q.g.append("g"),y,"left",5);A.forEach((s,si)=>{const pts=s.rounds.map((v,i)=>({x:x(flat.findIndex(d=>d.day===s.day&&d.round===i+1)),y:y(v)}));q.g.append("path").datum(pts).attr("class","d3line"+(s.day===last.day?" latest":"")).attr("d",d3.line().x(d=>d.x).y(d=>d.y).curve(d3.curveMonotoneX)).attr("opacity",s.day===last.day?1:.24);q.g.selectAll(".p"+si).data(pts).enter().append("circle").attr("class","dot p"+si).attr("cx",d=>d.x).attr("cy",d=>d.y).attr("r",s.day===last.day?4:2.5).attr("fill",s.day===last.day?colors.ac:colors.ac2).attr("opacity",s.day===last.day?1:.28).style("--dot-i",si*20).attr("r",d=>{const z=intensityInfo(s.rounds[pts.indexOf(d)],d3.min(scopedAll),d3.max(scopedAll));return (s.day===last.day?4:2.5)+z.score*3.5}).attr("style",d=>intensityAttrs(s.rounds[pts.indexOf(d)],d3.min(scopedAll),d3.max(scopedAll),s.day===last.day?1:.28)).attr("class",d=>`dot p${si} ${intensityClass(s.rounds[pts.indexOf(d)],d3.min(scopedAll),d3.max(scopedAll))}`).on("pointermove",(e,d)=>{const idx=pts.indexOf(d),v=s.rounds[idx];tipShow(tipRound(s,idx,v,`Session avg ${s.avg.toFixed(1)} · ${v>=s.avg?"above":"below"} average`),e)}).on("pointerleave",tipHide).on("click",()=>drillSession(s,"Trajectory"));});q.g.selectAll("path.d3line").each(function(){const len=this.getTotalLength();this.style.setProperty("--path-len",len);this.style.strokeDasharray=len;this.style.strokeDashoffset=len});}catch(e){console.error("Jump Rope Tracker SVG trajectory failed",e);emptyChart("trajectory","Visualization unavailable")}
-  // pace
-  try{const q=svgBase("pace",260),x=d3.scalePoint().domain(d3.range(1,maxR+1)).range([0,q.iw]),y=d3.scaleLinear().domain([0,d3.max(A.flatMap(s=>s.rounds))*1.1]).nice().range([q.ih,0]);axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",Math.min(maxR,8)).selectAll("text").text((d,i)=>`R${d}`);axis(q.g.append("g"),y,"left",4);A.forEach((s,si)=>{const line=s.rounds.map((v,i)=>({x:x(i+1),y:y(v)}));q.g.append("path").datum(line).attr("class","d3line"+(s.day===last.day?" latest":"")).attr("d",d3.line().x(d=>d.x).y(d=>d.y).curve(d3.curveMonotoneX)).attr("opacity",s.day===last.day?1:.16).on("pointermove",e=>tipShow(tipSession(s,"Session pace",d3.min(scopedAll),d3.max(scopedAll)),e)).on("pointerleave",tipHide).on("click",()=>drillSession(s,"Session pace"));const lo=d3.min(scopedAll),hi=d3.max(scopedAll);q.g.selectAll(`.pace-${si}`).data(line).enter().append("circle").attr("class",d=>`dot pace-${si} ${intensityClass(s.rounds[line.indexOf(d)],lo,hi)}`).attr("cx",d=>d.x).attr("cy",d=>d.y).attr("r",d=>3+intensityInfo(s.rounds[line.indexOf(d)],lo,hi).score*3).attr("fill",s.day===last.day?colors.ac:colors.ac2).attr("style",d=>intensityAttrs(s.rounds[line.indexOf(d)],lo,hi,s.day===last.day?1:.35)).on("pointermove",(e,d)=>{const idx=line.indexOf(d);tipShow(tipRound(s,idx,s.rounds[idx],`Session avg ${s.avg.toFixed(1)}`),e)}).on("pointerleave",tipHide).on("click",()=>drillSession(s,"Session pace"));});q.g.selectAll("path.d3line").each(function(){const len=this.getTotalLength();this.style.setProperty("--path-len",len);this.style.strokeDasharray=len;this.style.strokeDashoffset=len});}catch(e){console.error("Jump Rope Tracker SVG pace failed",e);emptyChart("pace","Visualization unavailable")}
-  // fatigue
-  try{const q=svgBase("fatigue",260),x=d3.scalePoint().domain(A.map(s=>"D"+s.day)).range([0,q.iw]),y=d3.scaleLinear().domain([Math.min(-20,d3.min(F,f=>f.pct)-3),Math.max(5,d3.max(F,f=>f.pct)+3)]).range([q.ih,0]);q.g.append("line").attr("x1",0).attr("x2",q.iw).attr("y1",y(0)).attr("y2",y(0)).attr("stroke",colors.bd).attr("stroke-dasharray","4 4");axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",Math.min(A.length,8));axis(q.g.append("g"),y,"left",5);const line=d3.line().x((d,i)=>x("D"+A[i].day)).y(d=>y(d.pct)).curve(d3.curveMonotoneX);q.g.append("path").datum(F).attr("class","d3line latest").attr("d",line);const fatigueMax=Math.max(1,d3.max(F,d=>Math.abs(d.pct))||1);q.g.selectAll("circle").data(F).enter().append("circle").attr("class",d=>`dot ${intensityClass(Math.abs(d.pct),0,fatigueMax)}`).attr("cx" ,(d,i)=>x("D"+A[i].day)).attr("cy",d=>y(d.pct)).attr("r",d=>4+intensityInfo(Math.abs(d.pct),0,fatigueMax).score*2.5).attr("fill",d=>d.pct<0?colors.ac:colors.ac2).attr("style",d=>intensityAttrs(Math.abs(d.pct),0,fatigueMax,1)).on("pointermove",(e,d)=>tipShow(`<b>${d.pct>=0?"+":""}${d.pct.toFixed(1)}%</b><span class="tip-context">Early ${d.early.toFixed(1)} → late ${d.late.toFixed(1)} skips/round<br>Day ${A[F.indexOf(d)].day} · ${fmtD(A[F.indexOf(d)].date)}</span><span class="tip-context">${intensityText(Math.abs(d.pct),0,fatigueMax,"fatigue signal magnitude")}</span><span class="tip-action">Click to drill into this session</span>`,e)).on("pointerleave",tipHide) .on("click",(e,d)=>drillSession(A[F.indexOf(d)],"Fatigue"));}catch(e){console.error("Jump Rope Tracker SVG fatigue failed",e);emptyChart("fatigue","Visualization unavailable")}
-  // fingerprint
-  try{
-    const q=svgBase("fingerprint",Math.max(190,Math.min(360,42*A.length+55)));
-    const cw=q.iw/maxR;
-    const ch=Math.max(12,Math.min(30,q.ih/Math.max(A.length,1)-5));
-    const lo=d3.min(A.flatMap(s=>s.rounds)), hi=d3.max(A.flatMap(s=>s.rounds));
-    const scale=d3.scaleLinear().domain([lo,hi]).range([colors.ac2,colors.ac]);
-    q.g.selectAll(".finger-row").data(A).enter().append("text").attr("class","finger-label").attr("x",-8).attr("y",(d,i)=>i*ch+ch*.7).attr("text-anchor","end").text(d=>`D${d.day}`);
-    A.forEach((s,ri)=>{
-      s.rounds.forEach((v,ci)=>{
-        q.g.append("rect")
-          .attr("class","finger-cell")
-          .attr("x",ci*cw).attr("y",ri*ch)
-          .attr("width",Math.max(2,cw-2)).attr("height",Math.max(8,ch-2))
-          .attr("fill",scale(v))
-           .attr("class",`finger-cell ${intensityClass(v,lo,hi)}`)
-           .attr("style",intensityAttrs(v,lo,hi,.9))
-          .on("pointermove",e=>tipShow(tipRound(s,ci,v,`Session avg ${s.avg.toFixed(1)} · SD ${s.sd.toFixed(1)}`),e))
-          .on("pointerleave",tipHide)
-          .on("click",()=>drillSession(s,"Fingerprint"));
-       });
-    });
-  }catch(e){console.error("Jump Rope Tracker SVG fingerprint failed",e);emptyChart("fingerprint","Visualization unavailable")}
-  // distribution
-  try{const q=svgBase("distribution",260),bins=d3.bin().thresholds(9)(scopedAll.map(Number)),x=d3.scaleLinear().domain([bins[0].x0,d3.max(bins,b=>b.x1)]).range([0,q.iw]),y=d3.scaleLinear().domain([0,d3.max(bins,b=>b.length)]).nice().range([q.ih,0]);axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",5);axis(q.g.append("g"),y,"left",4);q.g.selectAll("rect").data(bins).enter().append("rect").attr("x",b=>x(b.x0)+1).attr("y",b=>y(b.length)).attr("width",b=>Math.max(1,x(b.x1)-x(b.x0)-2)).attr("height",b=>q.ih-y(b.length)).attr("fill",colors.ac2).attr("opacity",.75).on("pointermove",(e,b)=>tipShow(`<b>${b.length} rounds</b><span class="tip-context">${Math.round(b.x0)}–${Math.round(b.x1)} skips<br>${(b.length/scopedAll.length*100).toFixed(1)}% of selected rounds</span>`,e)).on("pointerleave",tipHide);[[med,"Median"],[avgAll,"Average"],[bestRound,"Best"]].forEach((d,i)=>{q.g.append("line").attr("x1",x(d[0])).attr("x2",x(d[0])).attr("y1",0).attr("y2",q.ih).attr("stroke",i===2?colors.ac:colors.tx).attr("stroke-width",2).attr("stroke-dasharray",i===1?"4 4":null);q.g.append("text").attr("x",x(d[0])+4).attr("y",14+i*15).attr("fill",i===2?colors.ac:colors.tx).attr("font-size",11 ).text(`${d[1]} ${d[0].toFixed(0)}`)});}catch(e){console.error("Jump Rope Tracker SVG distribution failed",e);emptyChart("distribution","Visualization unavailable")}
-  // consistency
-  try{const q=svgBase("consistency",260),x=d3.scalePoint().domain(A.map(s=>"D"+s.day)).range([0,q.iw]),y=d3.scaleLinear().domain([0,d3.max(A,s=>s.sd)*1.2]).nice().range([q.ih,0]);axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",Math.min(A.length,8));axis(q.g.append("g"),y,"left",4);q.g.append("path").datum(A).attr("class","d3line").attr("d",d3.line().x(d=>x("D"+d.day)).y(d=>y(d.sd)).curve(d3.curveMonotoneX));const sdRange=intensityRange(A.map(s=>s.sd));q.g.selectAll("circle").data(A).enter().append("circle").attr("class",d=>`dot ${intensityClass(d.sd,sdRange.lo,sdRange.hi)}`).attr("cx",d=>x("D"+d.day)).attr("cy",d=>y(d.sd)).attr("r",d=>4+intensityInfo(d.sd,sdRange.lo,sdRange.hi).score*2.5).attr("fill",colors.ac2).attr("style",d=>intensityAttrs(d.sd,sdRange.lo,sdRange.hi,1)).on("pointermove",(e,d)=>tipShow(`<b>SD ${d.sd.toFixed(1)}</b><span class="tip-context">Day ${d.day} · Avg ${d.avg.toFixed(1)} skips</span><span class="tip-context">${intensityText(d.sd,sdRange.lo,sdRange.hi,"selected SD range")}</span>`,e) ).on("pointerleave",tipHide);}catch(e){console.error("Jump Rope Tracker SVG consistency failed",e);emptyChart("consistency","Visualization unavailable")}
-  // calendar
-  try{const q=svgBase("calendar",185),by=new Map(A.map(s=>[s.date,s])),start=d3.timeMonday.floor(d3.min(A,s=>new Date(s.date+"T00:00:00"))),end=d3.timeSunday.ceil(d3.max(A,s=>new Date(s.date+"T00:00:00")));const days=d3.timeDays(start,d3.timeDay.offset(end,1)),x=d3.scaleBand().domain(d3.range(7)).range([0,q.iw]).padding(.12),y=d3.scaleBand().domain(d3.range(Math.ceil(days.length/7))).range([22,q.ih]).padding(.12),mx=d3.max(A,s=>s.total)||1;const color=d3.scaleSequential(d3.interpolateRgb(colors.bd,colors.ac2)).domain([0,mx]);q.g.selectAll("text.dow").data(["M","T","W","T","F","S","S"]).enter().append("text").attr("class","finger-label").attr("x",(_,i)=>x(i)+x.bandwidth()/2).attr("y",12).attr("text-anchor","middle").text(d=>d);q.g.selectAll("rect").data(days).enter().append("rect").attr("class","calendar-cell").attr("x",d=>x((d.getDay()+6)%7)).attr("y",d=>y(Math.floor((d-start)/864e5/7))).attr("width",x.bandwidth()).attr("height",y.bandwidth()).attr("fill",d=>{const s=by.get(d.toISOString().slice(0,10));return s?color(s.total):colors.bd}).attr("opacity",d=>by.has(d.toISOString().slice(0,10))?1:.35).style("--cell-i",(_,i)=>i).attr("class",d=>{const s=by.get(d.toISOString().slice(0,10));if(!s)return "calendar-cell";const z=intensityInfo(s.total,0,mx);return `calendar-cell ${intensityClass(s.total,0,mx)}`}).attr("style",d=>{const s=by.get(d.toISOString().slice(0,10));return s?intensityAttrs(s.total,0,mx,.9):""}).on("pointermove",(e,d)=>{const s=by.get(d.toISOString().slice(0,10));tipShow(s?`<b>${s.total} skips</b>Day ${s.day}<br>${fmtD(s.date)} · ${s.rounds.length} rounds`:`<b>No session</b>${fmtD(d.toISOString().slice(0,10))}`,e)}).on("mouseleave",tipHide ).on("click",(e,d)=>{const s=by.get(d.toISOString().slice(0,10));if(s)drillSession(s,"Calendar")});}catch(e){console.error("Jump Rope Tracker SVG calendar failed",e);emptyChart("calendar","Visualization unavailable")}
-  // change vs previous session
-  const deltaBars=(id,data,tip,click,fmtv,latest)=>{
-    const q=svgBase(id,270),x=d3.scaleBand().domain(data.map(d=>d.k)).range([0,q.iw]).padding(.22),ext=d3.max(data,d=>Math.abs(d.d))||1,y=d3.scaleLinear().domain([-ext*1.2,ext*1.2]).range([q.ih,0]);
-    axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom");axis(q.g.append("g"),y,"left",5);
-    q.g.append("line").attr("x1",0).attr("x2",q.iw).attr("y1",y(0)).attr("y2",y(0)).attr("stroke",colors.tx).attr("stroke-width",2);
-    q.g.selectAll(".dbar").data(data).enter().append("rect").attr("class","dbar").attr("x",d=>x(d.k)).attr("width",x.bandwidth()).attr("y",y(0)).attr("height",0)
-      .attr("fill",d=>d.d>=0?colors.ac2:colors.ac).attr("stroke",(d,i)=>latest&&i===data.length-1?colors.tx:"none").attr("stroke-width",2)
-      .on("pointermove",(e,d)=>tipShow(tip(d),e)).on("pointerleave",tipHide).on("click",(e,d)=>click&&click(d))
-      .transition().duration(750).delay((d,i)=>i*55).ease(d3.easeCubicOut).attr("y",d=>d.d>=0?y(d.d):y(0)).attr("height",d=>Math.abs(y(d.d)-y(0)));
-    if(data.length<=16)q.g.selectAll(".dlab").data(data).enter().append("text").attr("x",d=>x(d.k)+x.bandwidth()/2).attr("y",d=>d.d>=0?y(d.d)-5:y(d.d)+14).attr("text-anchor","middle").attr("fill",colors.tx).attr("font-size",11).attr("font-weight",700).attr("opacity",0).text(d=>fmtv(d.d)).transition().delay(700).duration(300).attr("opacity",1);
-  };
-  try{
-    const M={total:{f:s=>s.total,u:" skips",l:"Total skips",d:0},avg:{f:s=>s.avg,u:" skips/round",l:"Avg / round",d:1},rounds:{f:s=>s.rounds.length,u:" rounds",l:"Rounds",d:0},peak:{f:s=>s.peak,u:" skips",l:"Peak round",d:0}};
-    const m=M[deltaMetric]||M.total,sg=(v,d)=>(v>0?"+":"")+v.toFixed(d);
-    document.querySelectorAll(".dm").forEach(b=>b.classList.toggle("on",b.dataset.m===deltaMetric));
-    const Lt=S[S.length-1],Pv=S[S.length-2];
-    document.getElementById("dchips").innerHTML=Pv?Object.values(M).map(q=>{const d=q.f(Lt)-q.f(Pv),pc=q.f(Pv)?d/q.f(Pv)*100:0;return `<div class="dchip ${d>0?"up":d<0?"dn":""}"><small>${q.l}</small><b>${sg(d,q.d)}</b><span>Day ${Lt.day} vs Day ${Pv.day}, ${sg(pc,1)}%</span></div>`}).join(""):"";
-    const D=A.map(s=>{const gi=S.indexOf(s);if(!gi)return null;const p=S[gi-1],a=m.f(s),b=m.f(p);return{k:"D"+s.day,s,p,d:a-b,a,b,pc:b?(a-b)/b*100:0}}).filter(Boolean);
-    if(!D.length)emptyChart("delta","Log two sessions to see how you changed");
-    else deltaBars("delta",D,d=>`<b>${sg(d.d,m.d)}${m.u}</b><span class="tip-context">Day ${d.s.day} vs Day ${d.p.day} · ${fmtD(d.s.date)}</span><span class="tip-context">${d.b.toFixed(m.d)} → ${d.a.toFixed(m.d)} (${sg(d.pc,1)}%)</span><span class="tip-action">Click to drill into this session</span>`,d=>drillSession(d.s,"Change"),v=>sg(v,m.d),true);
-  }catch(e){console.error("Jump Rope Tracker delta chart failed",e);emptyChart("delta","Visualization unavailable")}
-  try{
-    const Lt=S[S.length-1],Pv=S[S.length-2],k=Pv?Math.min(Lt.rounds.length,Pv.rounds.length):0;
-    if(!k){emptyChart("rdelta","Log two sessions to compare rounds");document.getElementById("drtag").textContent=""}
-    else{const R=d3.range(k).map(i=>({k:"R"+(i+1),d:Lt.rounds[i]-Pv.rounds[i],a:Lt.rounds[i],b:Pv.rounds[i],i})),net=d3.sum(R,r=>r.d);
-      document.getElementById("drtag").textContent=`Day ${Lt.day} vs Day ${Pv.day}: ${net>=0?"+":""}${net} skips over ${k} rounds`;
-      deltaBars("rdelta",R,d=>`<b>${d.d>=0?"+":""}${d.d} skips</b><span class="tip-context">Round ${d.i+1}: ${d.b} → ${d.a}</span><span class="tip-context">Day ${Lt.day} vs Day ${Pv.day}</span>`,null,v=>(v>0?"+":"")+v,false)}
-  }catch(e){console.error("Jump Rope Tracker round delta failed",e);emptyChart("rdelta","Visualization unavailable")}
-  // Give chart datapoints a keyboard path in addition to pointer/touch interaction.
-  document.querySelectorAll("#trajectory .dot,#delta .dbar,#rdelta .dbar,#pace .dot,#fatigue .dot,#fingerprint .finger-cell,#calendar .calendar-cell").forEach((el)=>{
-    el.setAttribute("tabindex","0");
-    el.setAttribute("role","button");
-    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();el.dispatchEvent(new MouseEvent("click",{bubbles:true}))}});
-  });
-  // PRs
-  const pr=[['🏆','Best round',bestRound+" skips",`Day ${S.find(s=>s.peak===bestRound)?.day||"—"}`],['🔥','Best session',bestS.total.toLocaleString()+" skips",`Day ${bestS.day} · ${bestS.rounds.length} rounds`],['📏','Best average',Math.max(...S.map(s=>s.avg)).toFixed(1)+" / round",`Day ${S.reduce((a,b)=>b.avg>a.avg?b:a).day}`],['⚡','Steadiest session',`${Math.min(...S.map(s=>s.sd)).toFixed(1)} SD`,`Day ${S.reduce((a,b)=>b.sd<a.sd?b:a).day}`],['📈','Recent growth',(growth>=0?"+":"")+growth.toFixed(1)+"%","vs prior comparable sessions"],['🎯','Most rounds',Math.max(...S.map(s=>s.rounds.length))+" rounds",`Day ${S.reduce((a,b)=>b.rounds.length>a.rounds.length?b:a).day}`],['🥇','100+ rounds',all.filter(v=>v>=100).length,"logged rounds"],['🧱','Total sessions',S.length,"training days logged"]];document.getElementById("prs").innerHTML=pr.map(p=>`<div class="pr-card"><i>${p[0]}</i><b>${p[2]}</b><span>${p[1]} · ${p[3]}</span></div>`).join("");
+function trajectoryModel(A){
+  if(!A.length)return{current:0,slope:0,expected:0,gap:0,sd:0,status:"NO DATA",statusClass:"neutral",next:0,note:"Log a session to establish a trajectory."};
+  const pts=A.map((s,i)=>({x:i,y:s.avg,s}));
+  const xbar=avg(pts.map(p=>p.x)), ybar=avg(pts.map(p=>p.y));
+  const den=sum(pts.map(p=>(p.x-xbar)**2));
+  const slope=den?sum(pts.map(p=>(p.x-xbar)*(p.y-ybar)))/den:0;
+  const intercept=ybar-slope*xbar;
+  const expected=intercept+slope*(A.length-1), current=A[A.length-1].avg, gap=current-expected;
+  const residuals=pts.map(p=>p.y-(intercept+slope*p.x)), spread=residuals.length>1?sd(residuals):0;
+  const band=Math.max(2,spread||2);
+  const status=gap>band?"AHEAD":gap<-band?"BEHIND":"ON TRAJECTORY";
+  const statusClass=gap>band?"ahead":gap<-band?"behind":"on";
+  return{current,slope,expected,gap,sd:spread,band,status,statusClass,next:intercept+slope*A.length,n:pts.length};
 }
+function comparableSet(A,last){
+  if(!last)return[];
+  const target=last.rounds.length;
+  for(const w of [1,2,3,5]){const q=A.filter(s=>Math.abs(s.rounds.length-target)<=w);if(q.length>=3)return q}
+  return A.slice();
+}
+function metricCard(value,label,why,sub="",cls=""){
+  return `<div class="metric ${cls}"><b>${value}</b><span>${label}</span><small>${sub}</small><em>WHY: ${why}</em></div>`;
+}
+function recordBook(S){
+  const flat=S.flatMap(s=>s.rounds), bestRound=Math.max(...flat), bestRoundSession=S.find(s=>s.rounds.includes(bestRound));
+  const bestSession=S.reduce((a,b)=>b.total>a.total?b:a), bestAvg=S.reduce((a,b)=>b.avg>a.avg?b:a);
+  const block=(s,n)=>{if(s.rounds.length<n)return 0;let m=0;for(let i=0;i+n<=s.rounds.length;i++)m=Math.max(m,sum(s.rounds.slice(i,i+n)));return m};
+  const best3=S.reduce((best,s)=>{const v=block(s,3);return v>best.value?{value:v,session:s}:best},{value:0,session:null});
+  const best5=S.reduce((best,s)=>{const v=block(s,5);return v>best.value?{value:v,session:s}:best},{value:0,session:null});
+  const finishes=S.map(s=>{const h=Math.max(1,Math.floor(s.rounds.length/2));return{session:s,pct:(avg(s.rounds.slice(h))/avg(s.rounds.slice(0,h))-1)*100}});
+  const bestFinish=finishes.reduce((a,b)=>b.pct>a.pct?b:a);
+  const eligible=S.filter(s=>s.rounds.length>=8);
+  const bestConsistency=eligible.length?eligible.reduce((a,b)=>b.sd<a.sd?b:a):null;
+  const hundred=S.map(s=>({session:s,count:s.rounds.filter(v=>v>=100).length})).reduce((a,b)=>b.count>a.count?b:a,{count:0,session:null});
+  const lengths={};S.forEach(s=>lengths[s.rounds.length]=(lengths[s.rounds.length]||0)+1);const favoriteLength=Object.entries(lengths).sort((a,b)=>b[1]-a[1])[0];
+  const first=S[0],latest=S[S.length-1],firstAvg=first.avg,latestAvg=latest.avg;
+  const signature=bestFinish.pct>=3?{name:"FINISHER",why:`Best late-round change: ${bestFinish.pct>=0?"+":""}${bestFinish.pct.toFixed(1)}%`}:bestConsistency?{name:"METRONOME",why:`Lowest SD among 8+ round sessions: ${bestConsistency.sd.toFixed(1)}`}:{name:"PEAK HUNTER",why:`Highest single round: ${bestRound} skips`};
+  return {bestRound,bestRoundSession,bestSession,bestAvg,best3,best5,bestFinish,bestConsistency,hundred,favoriteLength,signature,first,latest,growth:latestAvg-firstAvg,maxStreak};
+}
+function recordCard(icon,label,value,session,why,extra="",current=false){return `<article class="record-card ${current?"current":""}"><div class="record-spark"></div><div class="record-icon">${icon}</div><span class="record-label">${label}</span><strong>${value}</strong><small class="record-date">${session?`Day ${session.day} · ${fmtD(session.date)}`:extra}</small><em><b>WHY IT EXISTS:</b> ${why}${extra&&session?` · ${extra}`:""}</em></article>`}
+function renderRecordBook(S,all,best,last){
+  const R=recordBook(S), freshKey="jr_pr_seen", names=["BEST SINGLE ROUND","BEST SESSION","BEST AVG / ROUND","BEST 3-ROUND BLOCK","BEST 5-ROUND BLOCK","BEST FINISH","MOST 100+ ROUNDS","STEADIEST 8+ ROUND SESSION"];
+  let seen=[];try{seen=JSON.parse(localStorage.getItem(freshKey)||"[]")}catch(e){}
+  const nowBest=[R.bestRound,R.bestSession.total,R.bestAvg.avg,R.best3.value,R.best5.value,R.bestFinish.pct,R.hundred.count,R.bestConsistency?.sd].map(Number);
+  const changed=names.filter((n,i)=>!seen.includes(n)&&Number.isFinite(nowBest[i]));
+  try{localStorage.setItem(freshKey,JSON.stringify(names.filter((n,i)=>Number.isFinite(nowBest[i]))))}catch(e){}
+  if(changed.length){setTimeout(()=>{boom();toast("Record book updated: "+changed[0])},80)}
+  const cards=[
+    recordCard("★","BEST SINGLE ROUND",R.bestRound,R.bestRoundSession,"tracks your absolute round ceiling","Round "+(R.bestRoundSession.rounds.indexOf(R.bestRound)+1),R.bestRound===best),
+    recordCard("◆","BEST SESSION",R.bestSession.total,R.bestSession,"tracks your highest total workload in one logged session",`${R.bestSession.rounds.length} rounds`,R.bestSession.day===last.day),
+    recordCard("✦","BEST AVG / ROUND",R.bestAvg.avg.toFixed(1),R.bestAvg,"tracks your strongest session-level pace independent of total volume",`${R.bestAvg.rounds.length} rounds`,R.bestAvg.day===last.day),
+    recordCard("▲","BEST 3-ROUND BLOCK",R.best3.value,R.best3.session,"captures a short repeatable peak rather than one isolated round",R.best3.value?"3 consecutive rounds":"not reached"),
+    recordCard("⬢","BEST 5-ROUND BLOCK",R.best5.value,R.best5.session,"captures sustained high output across a longer window","5 consecutive rounds"),
+    recordCard("↗","BEST FINISH",`${R.bestFinish.pct>=0?"+":""}${R.bestFinish.pct.toFixed(1)}%`,R.bestFinish.session,"measures the largest first-half to second-half improvement","late vs early half"),
+    recordCard("100","MOST 100+ ROUNDS",R.hundred.count,R.hundred.session,"tracks how often a session crosses the 100-skip round marker",`${R.hundred.session?R.hundred.session.rounds.length:0} rounds`),
+    R.bestConsistency?recordCard("≈","STEADIEST 8+ ROUND SESSION",R.bestConsistency.sd.toFixed(1),R.bestConsistency,"tracks minimum round-to-round spread among sessions long enough to be meaningful","sample SD · 8+ rounds"):recordCard("≈","STEADIEST 8+ ROUND SESSION","—",null,"requires at least one session with 8+ rounds","not enough eligible sessions")
+  ];
+  $("prs").innerHTML=cards.join("");$("recordTag").textContent=`${cards.length} RECORDS · ${changed.length?"UPDATED":"CURRENT"}`;
+  const candidates=[];
+  if(R.bestRound>last.peak)candidates.push([R.bestRound-last.peak,"single-round ceiling",`+${R.bestRound-last.peak} skips to tie your record`]);
+  if(R.bestSession.total>last.total)candidates.push([R.bestSession.total-last.total,"session total",`+${R.bestSession.total-last.total} skips over this session length`]);
+  const n3=blockValue(last.rounds,3);if(R.best3.value>n3)candidates.push([R.best3.value-n3,"3-round block",`+${R.best3.value-n3} skips across 3 consecutive rounds`]);
+  candidates.sort((a,b)=>a[0]-b[0]);const near=candidates[0];
+  $("nearRecord").innerHTML=near?`<b>NEXT RECORD · ${near[1].toUpperCase()}</b><span>${near[2]}. This is the closest currently observed record, not a prescribed goal.</span>`:`<b>RECORD WALL CURRENT</b><span>The latest session is holding every record it is eligible to compare against.</span>`;
+  const unlocked=names.filter((n,i)=>Number.isFinite(nowBest[i])).length;
+  const signature=R.signature;
+  $("trophyCount").textContent=`${unlocked} RECORDS ACTIVE`;
+  $("trophyHero").innerHTML=`<div><small>TRAINING SIGNATURE</small><b class="signature">${signature.name}</b><span>${signature.why} · WHY: summarizes the strongest repeated pattern in your logged data.</span></div><div><small>LATEST BREAKTHROUGH</small><b class="breakthrough">${R.latest.peak}</b><span>latest peak round · Day ${R.latest.day} · ${R.latest.peak===R.bestRound?"new ceiling":"current ceiling marker"}</span></div><div><small>FAVORITE SESSION LENGTH</small><b>${R.favoriteLength?R.favoriteLength[0]:"—"}</b><span>${R.favoriteLength?`${R.favoriteLength[1]} logged sessions at this length`:"not enough history"} · WHY: shows the session format you use most.</span></div>`;
+  const unlockedBadges=names.map((n,i)=>Number.isFinite(nowBest[i])?n:null).filter(Boolean);
+  const badges=[
+    ["★","First Mark","Log a session",S.length>=1,S.length,1],
+    ["100","Century","Hit 100 in a round",R.bestRound>=100,R.bestRound,100],
+    ["◆","Heavy Haul","Log 1,000 skips in a session",R.bestSession.total>=1000,R.bestSession.total,1000],
+    ["3","Triple Threat","Complete a 3-round block",R.best3.value>0,R.best3.value,1],
+    ["5","Five Deep","Complete a 5-round block",R.best5.value>0,R.best5.value,1],
+    ["∞","Ten Sessions","Log 10 sessions",S.length>=10,S.length,10],
+    ["10K","Ten K","Reach 10,000 lifetime skips",sum(all)>=10000,sum(all),10000],
+    ["7","Seven","Log 7 sessions within 5-day gaps",R.maxStreak>=7,R.maxStreak,7]
+  ];
+  $("bd").innerHTML=badges.map((b,i)=>{const pct=b[3]?100:Math.min(100,b[5]?b[4]/b[5]*100:0);return `<div class="bg ${b[3]?"on":"locked"} ${freshAll.includes(b[1])?"new":""}" style="--k:${i}"><i>${b[0]}</i><b>${b[1]}</b><span>${b[2]}</span>${b[3]?'<span class="unlock-mark">UNLOCKED</span>':''}<div class="trophy-meta">${b[3]?"Earned from your logged history":`${Math.round(pct)}% toward this milestone`}</div>${!b[3]?`<div class="trophy-progress"><span style="width:${pct}%"></span></div>`:""}</div>`}).join("");
+  const locked=badges.filter(b=>!b[3]).sort((a,b)=>(b[4]/b[5])-(a[4]/a[5]))[0];
+  $("trophyNext").innerHTML=locked?`<div><b>NEXT TROPHY · ${locked[1]}</b><span>${locked[2]} · ${Math.max(0,locked[5]-locked[4])} to unlock.</span></div><strong>${Math.round(Math.min(100,locked[4]/locked[5]*100))}%</strong>`:`<div><b>TROPHY CASE COMPLETE</b><span>Every current milestone is unlocked. Future trophies should be discovered from future data.</span></div>`;
+}
+function blockValue(r,n){if(r.length<n)return 0;let m=0;for(let i=0;i+n<=r.length;i++)m=Math.max(m,sum(r.slice(i,i+n)));return m}
+function renderAnalytics(S,all,best,last,prev){
+  const n=S.length,range=analyticsRange==="all"?n:+analyticsRange,A=S.slice(Math.max(0,n-range));
+  if(!A.length)return;
+  const scopedAll=A.flatMap(s=>s.rounds),avgAll=avg(scopedAll),med=d3.median(scopedAll),bestRound=Math.max(...scopedAll),bestS=A.reduce((a,b)=>b.total>a.total?b:a),maxR=Math.max(...A.map(s=>s.rounds.length),1);
+  const T=trajectoryModel(A),comp=comparableSet(A,last),compAvg=avg(comp.map(s=>s.avg)),compFirst=comp[0],compDelta=last?last.avg-compAvg:0;
+  const fatigue=s=>{const h=Math.max(1,Math.floor(s.rounds.length/2)),a=avg(s.rounds.slice(0,h)),b=avg(s.rounds.slice(h));return{early:a,late:b,pct:(b/a-1)*100}};
+  const F=A.map(fatigue),meanFatigue=d3.mean(F,f=>f.pct);
+  const load=sum(scopedAll),roundCount=scopedAll.length;
+  const intensity=intensityRange(scopedAll);
+  const metrics=[
+    metricCard(last.avg.toFixed(1),"CURRENT PACE","answers where your latest session is now",`${last.rounds.length} rounds · Day ${last.day}`),
+    metricCard(`${T.gap>=0?"+":""}${T.gap.toFixed(1)}`,"TRAJECTORY GAP","shows whether the latest pace matches your observed path",`expected ${T.expected.toFixed(1)} / round`,T.statusClass),
+    metricCard(`${T.slope>=0?"+":""}${T.slope.toFixed(1)}`,"TREND / SESSION","quantifies the direction of your historical pace",`skips/round change per logged session`),
+    metricCard(T.next.toFixed(1),"NEXT EXPECTED PACE","turns the historical trajectory into a concrete next-session reference",`based on ${T.n} selected sessions`),
+    metricCard(compAvg.toFixed(1),"COMPARABLE PACE","controls for changing session length when judging movement",`${comp.length} similar-length sessions`),
+    metricCard(`${load.toLocaleString()}`,"TRAINING LOAD","keeps performance changes anchored to how much work was logged",`${roundCount} rounds in selected range`),
+    metricCard(`${meanFatigue>=0?"+":""}${meanFatigue.toFixed(1)}%`,"LATE-ROUND CHANGE","shows whether pace survives from the first half to the second",meanFatigue>=0?"selected sessions finish higher":"selected sessions fade late")
+  ];
+  document.getElementById("ametrics").innerHTML=metrics.join("");
+  document.getElementById("trajectoryHero").innerHTML=`<div class="trajectory-status ${T.statusClass}"><div><p class="eyebrow">CURRENT POSITION</p><b>${T.status}</b><span>${T.current.toFixed(1)} / round now · expected ${T.expected.toFixed(1)}</span></div><div class="trajectory-big"><small>TRAJECTORY GAP</small><strong>${T.gap>=0?"+":""}${T.gap.toFixed(1)}</strong><span>skips / round</span></div><div><small>WHAT NEXT?</small><strong>${T.next.toFixed(1)} / round</strong><span>historical next-step reference · not a target</span></div></div>`;
+  document.getElementById("atrailtag").textContent=`${A.length} sessions · ${roundCount} rounds · historical model`;
+  document.getElementById("comptag").textContent=`${comp.length} comparable · ${last.rounds.length}-round target`;
+  document.getElementById("fingerprinttag").textContent=`${maxR} rounds wide`;
+  document.getElementById("metricLedger").innerHTML=[
+    ["CURRENT PACE","Mean skips per round in the latest selected session.","Answers where performance is now."],
+    ["TRAJECTORY GAP","Current session average minus the linear historical trajectory at the current session index.","Answers whether the latest session is on the observed path."],
+    ["TREND / SESSION","Linear-regression slope of session average across the selected sessions.","Separates direction from one-session noise."],
+    ["NEXT EXPECTED PACE","Historical trajectory projected one selected session forward.","Gives the next workout a reference without inventing a goal."],
+    ["COMPARABLE PACE","Mean session average among sessions within ±1–5 rounds of the latest session, using the narrowest window with at least three sessions.","Prevents changing session length from distorting progress."],
+    ["TRAINING LOAD","Total skips and rounds in the selected range.","Provides workload context for performance changes."],
+    ["LATE-ROUND CHANGE","Second-half average versus first-half average, expressed as a percentage.","Shows whether output survives the session."]
+  ].map(x=>`<div><b>${x[0]}</b><span>${x[1]}</span><em>WHY IT EXISTS · ${x[2]}</em></div>`).join("");
+  const grid=document.querySelector(".analytics-grid");if(grid){grid.classList.remove("analytics-live");requestAnimationFrame(()=>grid.classList.add("analytics-live"))}
+  const colors={ac:css("--ac"),ac2:css("--ac2"),tx:css("--tx"),mut:css("--mut"),bd:css("--bd")};
+  // Main trajectory: one point per session, with the observed historical line and projected next point.
+  try{
+    const q=svgBase("trajectory",320),x=d3.scaleLinear().domain([0,A.length]).range([0,q.iw]),ys=A.map(s=>s.avg),pad=Math.max(3,(d3.max(ys)-d3.min(ys))*.35),y=d3.scaleLinear().domain([Math.max(0,d3.min(ys)-pad),d3.max(ys)+pad]).nice().range([q.ih,0]);
+    q.g.append("rect").attr("class","trajectory-band").attr("x",0).attr("y",y(T.expected+T.band)).attr("width",q.iw).attr("height",Math.max(0,y(T.expected-T.band)-y(T.expected+T.band)));
+    q.g.append("path").datum([{x:0,y:T.expected-T.slope*(A.length-1)},{x:A.length,y:T.next}]).attr("class","trajectory-projection").attr("d",d3.line().x(d=>x(d.x)).y(d=>y(d.y)));
+    q.g.append("path").datum(A.map((s,i)=>({x:i,y:T.expected+T.slope*(i-(A.length-1))}))).attr("class","trajectory-trend").attr("d",d3.line().x(d=>x(d.x)).y(d=>y(d.y)));
+    axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",Math.min(8,A.length)).selectAll("text").text((d)=>A[Math.round(d)]?`D${A[Math.round(d)].day}`:"");axis(q.g.append("g"),y,"left",5);
+    const lo=intensity.lo,hi=intensity.hi;
+    q.g.selectAll("circle").data(A).enter().append("circle").attr("class",(d,i)=>`dot trajectory-dot ${i===A.length-1?"latest ":""}${intensityClass(d.avg,lo,hi)}`).attr("cx",(_,i)=>x(i)).attr("cy",d=>y(d.avg)).attr("r",d=>5+intensityInfo(d.avg,lo,hi).score*3).attr("fill",(_,i)=>i===A.length-1?colors.ac:colors.ac2).attr("style",d=>intensityAttrs(d.avg,lo,hi,1)).on("pointermove",(e,d)=>{const i=A.indexOf(d);tipShow(`<b>Day ${d.day} · ${d.avg.toFixed(1)} / round</b><span class="tip-context">${fmtD(d.date)} · ${d.rounds.length} rounds · ${d.total} total</span><span class="tip-context">${i===A.length-1?T.status:(d.avg-(T.expected+T.slope*(i-(A.length-1)))>=0?"above":"below")} historical trajectory</span><span class="tip-action">Tap to open session drill</span>`,e)}).on("pointerleave",tipHide).on("click",(e,d)=>drillSession(d,"Trajectory"));
+    q.g.append("text").attr("class","chart-annotation").attr("x",q.iw-2).attr("y",Math.max(14,y(T.next)-8)).attr("text-anchor","end").text(`NEXT ${T.next.toFixed(1)}`);
+  }catch(e){console.error("trajectory",e);emptyChart("trajectory","Trajectory unavailable")}
+  // Fatigue + consistency share the durability question.
+  try{const q=svgBase("fatigue",220),x=d3.scalePoint().domain(A.map(s=>`D${s.day}`)).range([0,q.iw]),y=d3.scaleLinear().domain([Math.min(-20,d3.min(F,f=>f.pct)-3),Math.max(5,d3.max(F,f=>f.pct)+3)]).range([q.ih,0]);axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",Math.min(8,A.length));axis(q.g.append("g"),y,"left",4);q.g.append("line").attr("x2",q.iw).attr("y1",y(0)).attr("y2",y(0)).attr("stroke",colors.bd).attr("stroke-dasharray","4 4");q.g.append("path").datum(F).attr("class","d3line").attr("d",d3.line().x((d,i)=>x(`D${A[i].day}`)).y(d=>y(d.pct)));const mx=Math.max(1,d3.max(F,d=>Math.abs(d.pct))||1);q.g.selectAll("circle").data(F).enter().append("circle").attr("class",d=>`dot ${intensityClass(Math.abs(d.pct),0,mx)}`).attr("cx",(d,i)=>x(`D${A[i].day}`)).attr("cy",d=>y(d.pct)).attr("r",4).attr("fill",d=>d.pct<0?colors.ac:colors.ac2).attr("style",d=>intensityAttrs(Math.abs(d.pct),0,mx,1)).on("pointermove",(e,d)=>tipShow(`<b>${d.pct>=0?"+":""}${d.pct.toFixed(1)}% late-round change</b><span class="tip-context">Early ${d.early.toFixed(1)} → late ${d.late.toFixed(1)} · Day ${A[F.indexOf(d)].day}</span>`,e)).on("pointerleave",tipHide).on("click",(e,d)=>drillSession(A[F.indexOf(d)],"Fatigue"));}catch(e){emptyChart("fatigue","Fatigue unavailable")}
+  try{const q=svgBase("consistency",220),x=d3.scalePoint().domain(A.map(s=>`D${s.day}`)).range([0,q.iw]),y=d3.scaleLinear().domain([0,d3.max(A,s=>s.sd)*1.2||1]).nice().range([q.ih,0]);axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",Math.min(8,A.length));axis(q.g.append("g"),y,"left",4);q.g.append("path").datum(A).attr("class","d3line").attr("d",d3.line().x(d=>x(`D${d.day}`)).y(d=>y(d.sd)));const r=intensityRange(A.map(s=>s.sd));q.g.selectAll("circle").data(A).enter().append("circle").attr("class",d=>`dot ${intensityClass(d.sd,r.lo,r.hi)}`).attr("cx",d=>x(`D${d.day}`)).attr("cy",d=>y(d.sd)).attr("r",4).attr("fill",colors.ac2).attr("style",d=>intensityAttrs(d.sd,r.lo,r.hi,1)).on("pointermove",(e,d)=>tipShow(`<b>${d.sd.toFixed(1)} SD</b><span class="tip-context">Day ${d.day} · ${d.avg.toFixed(1)} / round</span>`,e)).on("pointerleave",tipHide).on("click",(e,d)=>drillSession(d,"Consistency"));}catch(e){emptyChart("consistency","Consistency unavailable")}
+  // Training load: bars make workload visible without pretending it is performance.
+  try{const q=svgBase("load",220),x=d3.scaleBand().domain(A.map(s=>`D${s.day}`)).range([0,q.iw]).padding(.22),y=d3.scaleLinear().domain([0,d3.max(A,s=>s.total)*1.15]).nice().range([q.ih,0]);axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",Math.min(8,A.length));axis(q.g.append("g"),y,"left",4);const r=intensityRange(A.map(s=>s.total));q.g.selectAll("rect").data(A).enter().append("rect").attr("class",d=>`dbar ${intensityClass(d.total,r.lo,r.hi)}`).attr("x",d=>x(`D${d.day}`)).attr("width",x.bandwidth()).attr("y",d=>y(d.total)).attr("height",d=>q.ih-y(d.total)).attr("fill",colors.ac2).attr("style",d=>intensityAttrs(d.total,r.lo,r.hi,.8)).on("pointermove",(e,d)=>tipShow(`<b>${d.total.toLocaleString()} skips</b><span class="tip-context">Day ${d.day} · ${d.rounds.length} rounds</span>`,e)).on("pointerleave",tipHide).on("click",(e,d)=>drillSession(d,"Training load"));}catch(e){emptyChart("load","Training load unavailable")}
+  // Comparable-session view.
+  try{const q=svgBase("comparable",250),x=d3.scalePoint().domain(comp.map(s=>`D${s.day}`)).range([0,q.iw]),vals=comp.map(s=>s.avg),y=d3.scaleLinear().domain([Math.max(0,d3.min(vals)-5),d3.max(vals)+5]).nice().range([q.ih,0]);axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",Math.min(8,comp.length));axis(q.g.append("g"),y,"left",5);q.g.append("line").attr("x1",0).attr("x2",q.iw).attr("y1",y(compAvg)).attr("y2",y(compAvg)).attr("stroke",colors.bd).attr("stroke-dasharray","4 4");q.g.append("text").attr("class","chart-annotation").attr("x",q.iw).attr("y",y(compAvg)-6).attr("text-anchor","end").text(`COMPARABLE AVG ${compAvg.toFixed(1)}`);q.g.selectAll("circle").data(comp).enter().append("circle").attr("class",(d,i)=>`dot ${d.day===last.day?"latest ":""}${intensityClass(d.avg,d3.min(vals),d3.max(vals))}`).attr("cx",d=>x(`D${d.day}`)).attr("cy",d=>y(d.avg)).attr("r",d=>d.day===last.day?7:5).attr("fill",d=>d.day===last.day?colors.ac:colors.ac2).attr("style",d=>intensityAttrs(d.avg,d3.min(vals),d3.max(vals),1)).on("pointermove",(e,d)=>tipShow(`<b>Day ${d.day} · ${d.avg.toFixed(1)} / round</b><span class="tip-context">${d.rounds.length} rounds · comparable group ± window</span>`,e)).on("pointerleave",tipHide).on("click",(e,d)=>drillSession(d,"Comparable"));}catch(e){emptyChart("comparable","Comparable sessions unavailable")}
+  // Distribution.
+  try{const q=svgBase("distribution",230),bins=d3.bin().thresholds(9)(scopedAll.map(Number)),x=d3.scaleLinear().domain([bins[0].x0,d3.max(bins,b=>b.x1)]).range([0,q.iw]),y=d3.scaleLinear().domain([0,d3.max(bins,b=>b.length)]).nice().range([q.ih,0]);axis(q.g.append("g").attr("transform",`translate(0,${q.ih})`),x,"bottom",5);axis(q.g.append("g"),y,"left",4);q.g.selectAll("rect").data(bins).enter().append("rect").attr("class","dbar").attr("x",b=>x(b.x0)+1).attr("y",b=>y(b.length)).attr("width",b=>Math.max(1,x(b.x1)-x(b.x0)-2)).attr("height",b=>q.ih-y(b.length)).attr("fill",colors.ac2).attr("opacity",.72).on("pointermove",(e,b)=>tipShow(`<b>${b.length} rounds</b><span class="tip-context">${Math.round(b.x0)}–${Math.round(b.x1)} skips · ${(b.length/scopedAll.length*100).toFixed(1)}% of selected rounds</span>`,e)).on("pointerleave",tipHide);[[med,"MEDIAN"],[avgAll,"AVERAGE"],[bestRound,"BEST"]].forEach((d,i)=>q.g.append("line").attr("x1",x(d[0])).attr("x2",x(d[0])).attr("y1",0).attr("y2",q.ih).attr("stroke",i===2?colors.ac:colors.tx).attr("stroke-dasharray",i===1?"4 4":null));}catch(e){emptyChart("distribution","Distribution unavailable")}
+  // Fingerprint.
+  try{const q=svgBase("fingerprint",Math.max(190,Math.min(360,40*A.length+55))),cw=q.iw/maxR,ch=Math.max(12,Math.min(30,q.ih/Math.max(A.length,1)-5)),lo=intensity.lo,hi=intensity.hi;A.forEach((s,ri)=>{q.g.append("text").attr("class","finger-label").attr("x",-8).attr("y",ri*ch+ch*.7).attr("text-anchor","end").text(`D${s.day}`);s.rounds.forEach((v,ci)=>q.g.append("rect").attr("class",`finger-cell ${intensityClass(v,lo,hi)}`).attr("x",ci*cw).attr("y",ri*ch).attr("width",Math.max(2,cw-2)).attr("height",Math.max(8,ch-2)).attr("fill",v===bestRound?colors.ac:colors.ac2).attr("style",intensityAttrs(v,lo,hi,.85)).on("pointermove",e=>tipShow(tipRound(s,ci,v,`Session avg ${s.avg.toFixed(1)} · SD ${s.sd.toFixed(1)}`),e)).on("pointerleave",tipHide).on("click",()=>drillSession(s,"Fingerprint")))});}catch(e){emptyChart("fingerprint","Fingerprint unavailable")}
+  // Calendar.
+  try{const q=svgBase("calendar",180),by=new Map(A.map(s=>[s.date,s])),start=d3.timeMonday.floor(d3.min(A,s=>new Date(s.date+"T00:00:00"))),end=d3.timeSunday.ceil(d3.max(A,s=>new Date(s.date+"T00:00:00"))),days=d3.timeDays(start,d3.timeDay.offset(end,1)),x=d3.scaleBand().domain(d3.range(7)).range([0,q.iw]).padding(.12),y=d3.scaleBand().domain(d3.range(Math.ceil(days.length/7))).range([22,q.ih]).padding(.12),r=intensityRange(A.map(s=>s.total));q.g.selectAll("rect").data(days).enter().append("rect").attr("class",d=>{const s=by.get(d.toISOString().slice(0,10));return `calendar-cell ${s?intensityClass(s.total,r.lo,r.hi):""}`}).attr("x",d=>x((d.getDay()+6)%7)).attr("y",d=>y(Math.floor((d-start)/864e5/7))).attr("width",x.bandwidth()).attr("height",y.bandwidth()).attr("fill",d=>by.has(d.toISOString().slice(0,10))?colors.ac2:colors.bd).attr("opacity",d=>by.has(d.toISOString().slice(0,10))?1:.3).attr("style",d=>{const s=by.get(d.toISOString().slice(0,10));return s?intensityAttrs(s.total,r.lo,r.hi,.9):""}).on("pointermove",(e,d)=>{const s=by.get(d.toISOString().slice(0,10));tipShow(s?`<b>Day ${s.day} · ${s.total} skips</b><span class="tip-context">${fmtD(s.date)} · ${s.rounds.length} rounds</span>`:`<b>No session</b><span class="tip-context">${fmtD(d.toISOString().slice(0,10))}</span>`,e)}).on("pointerleave",tipHide).on("click",(e,d)=>{const s=by.get(d.toISOString().slice(0,10));if(s)drillSession(s,"Calendar")});}catch(e){emptyChart("calendar","Calendar unavailable")}
+  document.querySelectorAll("#trajectory .dot,#load .dbar,#fatigue .dot,#consistency .dot,#comparable .dot,#fingerprint .finger-cell,#calendar .calendar-cell").forEach(el=>{el.setAttribute("tabindex","0");el.setAttribute("role","button");el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();el.dispatchEvent(new MouseEvent("click",{bubbles:true}))}})});
+}
+
 function render(){
   const S=data().map(stats), n=S.length, last=S[n-1], prev=S[n-2];
   const all=S.flatMap(s=>s.rounds), best=Math.max(...all);
-  const labels=Array.from({length:Math.max(...S.map(s=>s.rounds.length))},(_,i)=>`R${i+1}`);
   const bestS=S.reduce((a,b)=>b.total>a.total?b:a);
   const bestAvg=S.reduce((a,b)=>b.avg>a.avg?b:a);
   const steady=S.filter(s=>s.rounds.length>=8).reduce((a,b)=>b.sd<a.sd?b:a);
@@ -651,20 +975,30 @@ function render(){
   c.push(["",`Warm-up: Round 1 averages ${r1.toFixed(1)} vs ${ra.toFixed(1)} session average. Trip-like dips (under 75% of session avg) on Day ${last.day}: <b>${last.rounds.filter(v=>v<last.avg*.75).length}</b>.`]);
   const same=S.filter(s=>rb(s)===rb(last)),bt=Math.max(...same.map(s=>s.total));
   c.unshift(["pr",last.total>=bt?`Record held: ${bt} skips over ${rb(last)} rounds. Beat it next time, that is ${(bt/rb(last)+.1).toFixed(1)} a round.`:`Next target: ${bt+1} skips over ${rb(last)} rounds sets a new record for that length.`]);
-  document.getElementById("calls").innerHTML=c.map(x=>`<li class="${x[0]||"n"}">${x[1]}</li>`).join("");
+  document.getElementById("calls").innerHTML=c.slice(0,6).map(x=>`<li class="${x[0]||"n"}">${x[1]}</li>`).join("");
 
   const mx=last.peak,M=momHTML(S);
+  const OT=trajectoryModel(S), Ocomp=comparableSet(S,last), OcompAvg=Ocomp.length?avg(Ocomp.map(s=>s.avg)):last.avg;
+  $("odCurrent").textContent=last.avg.toFixed(1);
+  $("odCurrentMeta").textContent=`${last.rounds.length} rounds · Day ${last.day} · ${last.total.toLocaleString()} total skips`;
+  $("odNext").textContent=OT.next.toFixed(1)+" / round";
+  $("odNextMeta").textContent=`${last.rounds.length}-round reference · ${OT.n} sessions in model · not a goal`;
+  $("odGap").textContent=`${OT.gap>=0?"+":""}${OT.gap.toFixed(1)} / round`;
+  $("odTrajectoryCopy").textContent=`Current ${OT.current.toFixed(1)} vs historical ${OT.expected.toFixed(1)} · ${Ocomp.length} comparable sessions average ${OcompAvg.toFixed(1)}.`;
+  const os=$("odStatus");os.className="od-status "+OT.statusClass;os.querySelector("b").textContent=OT.status;os.querySelector("span").textContent=`${OT.gap>=0?"+":""}${OT.gap.toFixed(1)} vs historical path · ${OT.slope>=0?"rising":"falling"} ${Math.abs(OT.slope).toFixed(1)} / session`;
+  const pct=Math.max(0,Math.min(100,50+OT.gap*5));$("odProgressFill").style.width=pct+"%";
+  const nextTotal=Math.round(OT.next*last.rounds.length);
+  $("odAction").innerHTML=`<div class="od-action-card"><div><small>EXPECTED NEXT PACE</small><b>${OT.next.toFixed(1)} / round</b><span>historical reference, not a target</span></div><div><small>IF YOU REPEAT ${last.rounds.length} ROUNDS</small><b>≈ ${nextTotal.toLocaleString()}</b><span>estimated session total</span></div><div><small>COMPARABLE PACE</small><b>${OcompAvg.toFixed(1)}</b><span>${Ocomp.length} similar-length sessions</span></div></div>`;
+  $("odGo").onclick=()=>show("go");$("overviewCharts").onclick=()=>show("charts");
   $("hero").innerHTML=`<div class="hl"><p class="when">Latest: Day ${last.day}, ${fmtD(last.date)}</p><div class="big">${last.total}</div><p class="what">skips over ${last.rounds.length} rounds of 45 seconds, averaging ${last.avg.toFixed(1)}</p><div class="strip">${last.rounds.map((v,i)=>{const ir=intensityRange(all);return `<i class="${v===mx?"pk ":""}${intensityClass(v,ir.lo,ir.hi)} intensity-pulse" style="--h:${v/mx*100}%;--d:${i*60}ms;${intensityAttrs(v,ir.lo,ir.hi,.95)}"><em>${v}</em></i>`}).join("")}</div></div><div class="hr"><p class="corner">${corner(last,prior)}</p>${M.html}${rankHTML(sum(all))}<button data-go>Start the clock</button></div>`;
   heroFx(last.total);
-  $("sb").innerHTML=`Latest<b>${last.total}</b>Day ${last.day}, ${M.m>=0?"+":""}${M.m.toFixed(1)}% momentum`;
+  $("topStatus").innerHTML=`Latest<b>${last.total}</b><span>Day ${last.day} · ${M.m>=0?"+":""}${M.m.toFixed(1)}% momentum</span><span class="top-status-path">${OT.status} · next ${OT.next.toFixed(1)}/round</span>`;
   $("hero").parentNode.style.setProperty("--sp",(2.6-Math.min(1,Math.max(0,M.m/12))*1.7).toFixed(2)+"s");
   const goal=(()=>{try{return+localStorage.jr_goal||2500}catch(e){return 2500}})(),d0=new Date(todayISO()+"T00:00:00"),ws=new Date(d0-((d0.getDay()+6)%7)*864e5),we=new Date(+ws+6*864e5);
   const wsk=S.filter(s=>{const d=new Date(s.date+"T00:00:00");return d>=ws&&d<=we}).reduce((a,s)=>a+s.total,0),pc=Math.min(1,wsk/goal),C=2*Math.PI*54;
-  $("wk").innerHTML=`<div class="ring${pc>=1?" done":""} intensity-progress ${pc>=.8?"intensity-high":pc>=.5?"intensity-mid":"intensity-low"}" style="${intensityAttrs(pc,0,1,1)}"><svg viewBox="0 0 140 140"><circle class="rt" cx="70" cy="70" r="54"/><circle class="rf" cx="70" cy="70" r="54" stroke-dasharray="${C}" stroke-dashoffset="${C}" data-o="${C*(1-pc)}"/></svg><div><b>${Math.round(pc*100)}%</b></div></div><p>${wsk.toLocaleString()} of ${goal.toLocaleString()} skips this week. ${pc>=1?"Goal smashed.":`${(goal-wsk).toLocaleString()} to go, about ${Math.ceil((goal-wsk)/avg(last.rounds))} more rounds at your latest pace.`}</p><button class="sec" id="wg">Change goal</button>`;
+  $("wk").innerHTML=`<div class="ring${pc>=1?" done":""} intensity-progress ${pc>=.8?"intensity-high":pc>=.5?"intensity-mid":"intensity-low"}" style="${intensityAttrs(pc,0,1,1)}"><svg viewBox="0 0 140 140"><circle class="rt" cx="70" cy="70" r="54"/><circle class="rf" cx="70" cy="70" r="54" stroke-dasharray="${C}" stroke-dashoffset="${C}" data-o="${C*(1-pc)}"/></svg><div><b>${Math.round(pc*100)}%</b></div></div><p>${wsk.toLocaleString()} of ${goal.toLocaleString()} skips this week. ${pc>=1?"Goal smashed.":`${(goal-wsk).toLocaleString()} to go, about ${Math.ceil((goal-wsk)/avg(last.rounds))} more rounds at your latest pace.`}</p>`;
   requestAnimationFrame(()=>requestAnimationFrame(()=>{const f=$("wk").querySelector(".rf");if(f)f.style.strokeDashoffset=f.dataset.o}));
   $("wg").onclick=()=>{const v=+prompt("Weekly skip goal in skips",goal);if(v>0){try{localStorage.jr_goal=v}catch(e){}render()}};
-  const tk=[sum(all).toLocaleString()+" skips",n+" sessions","best round "+best,st+" sessions in a row","avg "+avg(all).toFixed(1)+" a round","latest "+last.total,"momentum "+(M.m>=0?"+":"")+M.m.toFixed(1)+"%"];
-  $("tick").innerHTML=tk.map(t=>`<span>${t}</span>`).join("").repeat(6);
   document.querySelectorAll("#kpis b,#wk b").forEach(cu);
   const xp=sum(all),L=lvOf(xp),bestT=Math.max(...S.map(s=>s.total));
   const wl=S.filter(s=>{const d=new Date(s.date+"T00:00:00");return d>=ws&&d<=we}),wmax=Math.max(0,...wl.flatMap(s=>s.rounds));
@@ -676,16 +1010,23 @@ function render(){
   if(fresh.length){freshAll=[...freshAll,...fresh];setTimeout(()=>{freshAll=[]},7000);toast("Badge unlocked: "+fresh.join(", "));boom()}
   $("bd").innerHTML=B.map((b,i)=>`<div class="bg${b[3]?" on":""}${freshAll.includes(b[1])?" new":""}" style="--k:${i}"><i>${b[0]}</i><b>${b[1]}</b><span>${b[2]}</span>${b[3]||!b[4]?"":`<p class="pb ${intensityClass(Math.min(b[4][0]/b[4][1],1),0,1)}" style="${intensityAttrs(Math.min(b[4][0]/b[4][1],1),0,1,.9)}"><span style="width:${Math.min(100,b[4][0]/b[4][1]*100)}%"></span></p>`}</div>`).join("");
   checkLevel(xp);
+  renderRecordBook(S, all, best, last);
   renderAnalytics(S, all, best, last, prev);
-  // heatmap
+  // Session history: a ledger that explains how the current trajectory was built.
+  const sessionT=trajectoryModel(S),sessionComp=comparableSet(S,last),compMap=new Set(sessionComp.map(s=>s.day));
+  const sessionStatus=s=>{const i=S.indexOf(s),expected=sessionT.expected+sessionT.slope*(i-(S.length-1)),gap=s.avg-expected,b=Math.max(2,sessionT.sd||2);return{gap,status:gap>b?"AHEAD":gap<-b?"BEHIND":"ON PATH",cls:gap>b?"ahead":gap<-b?"behind":"on"}};
+  const currentComp=sessionComp.length?avg(sessionComp.map(s=>s.avg)):last.avg;
+  const sessionDelta=last.avg-currentComp;
+  document.getElementById("sessionStory").innerHTML=`<div><small>CURRENT POSITION</small><b>${sessionT.status}</b><span>${last.avg.toFixed(1)} / round · ${sessionT.gap>=0?"+":""}${sessionT.gap.toFixed(1)} vs historical path</span></div><div><small>COMPARABLE PACE</small><b>${currentComp.toFixed(1)}</b><span>${sessionDelta>=0?"+":""}${sessionDelta.toFixed(1)} vs comparable group</span></div><div><small>NEXT REFERENCE</small><b>${sessionT.next.toFixed(1)}</b><span>expected next pace · not a goal</span></div>`;
+  const labels=Array.from({length:Math.max(...S.map(s=>s.rounds.length))},(_,i)=>`R${i+1}`);
   const lo=Math.min(...all),hi=best;
-  const cell=v=>{if(v==null)return"<td></td>";const z=intensityInfo(v,lo,hi),t=z.score;return `<td class="${z.band==="high"?"hi ":""}${intensityClass(v,lo,hi)}" style="background:rgba(${isDark()?"96,125,255":"27,63,224"},${(.05+t*.65).toFixed(2)});color:${t>.55?"#fff":"inherit"};${intensityAttrs(v,lo,hi,.9)}">${v}</td>`};
-  document.getElementById("heat").innerHTML=`<table><tr><th class="l">Day</th><th class="l">Date</th>${labels.map(l=>`<th>${l}</th>`).join("")}<th>Total</th><th>Avg</th><th>SD</th></tr>`+
-   S.map(s=>`<tr class="s" data-d="${s.day}"><td class="l"><b>${s.day}</b></td><td class="l">${fmtD(s.date)}</td>${labels.map((_,i)=>cell(s.rounds[i])).join("")}<td><b>${s.total}</b></td><td>${s.avg.toFixed(1)}</td><td>${s.sd.toFixed(1)}</td></tr>`).join("")+"</table>";
+  const cell=v=>{if(v==null)return"<td></td>";return `<td class="${intensityClass(v,lo,hi)} ${v===best?"pbcell":""}" style="${intensityAttrs(v,lo,hi,.9)}">${v}</td>`};
+  document.getElementById("heat").innerHTML=`<table><tr><th class="l">Day</th><th class="l">Date</th>${labels.map(l=>`<th>${l}</th>`).join("")}<th>Total</th><th>Avg</th><th>SD</th></tr>`+S.map(s=>`<tr class="s" data-d="${s.day}"><td class="l"><b>${s.day}</b></td><td class="l">${fmtD(s.date)}</td>${labels.map((_,i)=>cell(s.rounds[i])).join("")}<td><b>${s.total}</b></td><td>${s.avg.toFixed(1)}</td><td>${s.sd.toFixed(1)}</td></tr>`).join("")+"</table>";
   const dl=v=>`<span class="${v>=0?"up":"dn"}">${v>=0?"+":""}${v.toFixed(1)}</span>`;
-  document.getElementById("sum").innerHTML=`<table><tr><th>Day</th><th class="l">Date</th><th>Rds</th><th>Total</th><th>Avg</th><th>Δ Avg</th><th>Peak</th><th>Low</th><th>SD</th><th>½ → ½</th><th></th></tr>`+S.map((s,i)=>{const h=Math.floor(s.rounds.length/2),sr=intensityRange(S.map(q=>q.total));return`<tr class="${intensityClass(s.total,sr.lo,sr.hi)}" style="${intensityAttrs(s.total,sr.lo,sr.hi,.72)}"><td><b>${s.day}</b></td><td class="l">${fmtD(s.date)}</td><td>${s.rounds.length}</td><td><b>${s.total}</b></td><td>${s.avg.toFixed(1)}</td><td>${i?dl(s.avg-S[i-1].avg):"–"}</td><td>${s.peak}</td><td>${s.min}</td><td>${s.sd.toFixed(1)}</td><td>${h?dl(avg(s.rounds.slice(h))-avg(s.rounds.slice(0,h))):"–"}</td><td><button class="sec ed" data-d="${s.day}" style="margin:0;padding:3px 8px">Edit</button></td></tr>`}).reverse().join("")+"</table>";
-  document.querySelectorAll(".ed").forEach(b=>b.onclick=()=>{fillForm(+b.dataset.d);show("log")});
-  document.querySelectorAll("tr.s").forEach(r=>r.onclick=()=>{spot=+r.dataset.d;render()});
+  document.getElementById("sum").innerHTML=`<table><thead><tr><th class="l">Session</th><th>Avg / round</th><th>Trajectory</th><th>Gap</th><th>Rds</th><th>Total</th><th>Peak</th><th>SD</th><th>Fatigue</th><th>Comparable</th><th></th></tr></thead><tbody>`+S.map((s,i)=>{const st=sessionStatus(s),h=Math.max(1,Math.floor(s.rounds.length/2)),fat=(avg(s.rounds.slice(h))/avg(s.rounds.slice(0,h))-1)*100,cmp=compMap.has(s.day),prevAvg=i?s.avg-S[i-1].avg:null;return`<tr class="session-row ${st.cls}" data-d="${s.day}" tabindex="0"><td class="l"><b>Day ${s.day}</b><small>${fmtD(s.date)}</small></td><td><strong>${s.avg.toFixed(1)}</strong>${prevAvg==null?"":`<small>${dl(prevAvg)} vs prior</small>`}</td><td><span class="status-pill ${st.cls}">${st.status}</span></td><td>${st.gap>=0?"+":""}${st.gap.toFixed(1)}</td><td>${s.rounds.length}</td><td><b>${s.total.toLocaleString()}</b></td><td>${s.peak}</td><td>${s.sd.toFixed(1)}</td><td class="${fat<0?"dn":"up"}">${fat>=0?"+":""}${fat.toFixed(1)}%</td><td>${cmp?"YES":"—"}</td><td><button class="sec ed" data-d="${s.day}" style="margin:0;padding:3px 8px">Edit</button></td></tr>`}).reverse().join("")+`</tbody></table>`;
+  document.querySelectorAll(".ed").forEach(b=>b.onclick=e=>{e.stopPropagation();fillForm(+b.dataset.d);show("log")});
+  document.querySelectorAll(".session-row").forEach(r=>{const open=()=>{spot=+r.dataset.d;drillSession(S.find(s=>s.day===spot),"Session history")};r.onclick=open;r.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open()}}});
+
 }
 
 const msg=(t,ok)=>{const m=document.getElementById("msg");m.textContent=t;m.style.color=ok?css("--gd"):css("--ac")};
@@ -788,8 +1129,8 @@ async function push(){const c=cfg(),cur=await pull();
   if(!r.ok)throw bad(r);
   remote=list;extra=[];save(extra);known=sig(list)}
 async function trySync(){if(cfg().token&&cfg().repo)try{await push();render()}catch(e){msg("Added on this device only. Sync failed: "+e.message,false)}}
-$("sr").value=cfg().repo||"ChaitanyaKher/jump-rope-tracker";$("sb").value=cfg().branch||"main";$("st").value=cfg().token||"";
-$("ss").onclick=async()=>{try{localStorage.setItem(CK,JSON.stringify({repo:$("sr").value.trim(),branch:$("sb").value.trim()||"main",token:$("st").value.trim()}))}catch(e){}
+$("sr").value=cfg().repo||"ChaitanyaKher/jump-rope-tracker";$("syncBranch").value=cfg().branch||"main";$("st").value=cfg().token||"";
+$("ss").onclick=async()=>{try{localStorage.setItem(CK,JSON.stringify({repo:$("sr").value.trim(),branch:$("syncBranch").value.trim()||"main",token:$("st").value.trim()}))}catch(e){}
   $("sy").textContent="Syncing...";try{await push();render();$("sy").textContent="Synced. data.json matches this device."}catch(e){$("sy").textContent="Sync failed: "+e.message}};
 let known=null;const sig=l=>Object.fromEntries(l.map(x=>[x.day,sum(x.rounds)]));
 function momHTML(S){const a=S.map(s=>s.avg);if(a.length<2)return{m:0,html:""};const k=Math.max(1,Math.min(3,Math.floor(a.length/2))),r=avg(a.slice(-k)),p=avg(a.slice(-2*k,-k)),m=(r/p-1)*100;
