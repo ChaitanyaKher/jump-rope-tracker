@@ -832,6 +832,12 @@ function recordBook(S){
   const hundred=S.map(s=>({session:s,count:s.rounds.filter(v=>v>=100).length})).reduce((a,b)=>b.count>a.count?b:a,{count:0,session:null});
   const lengths={};S.forEach(s=>lengths[s.rounds.length]=(lengths[s.rounds.length]||0)+1);const favoriteLength=Object.entries(lengths).sort((a,b)=>b[1]-a[1])[0];
   const first=S[0],latest=S[S.length-1],firstAvg=first.avg,latestAvg=latest.avg;
+  let maxStreak=1,streak=1;
+  for(let i=1;i<S.length;i++){
+    const gap=(new Date(S[i].date)-new Date(S[i-1].date))/864e5;
+    if(gap<=5)streak++;else streak=1;
+    maxStreak=Math.max(maxStreak,streak);
+  }
   const signature=bestFinish.pct>=3?{name:"FINISHER",why:`Best late-round change: ${bestFinish.pct>=0?"+":""}${bestFinish.pct.toFixed(1)}%`}:bestConsistency?{name:"METRONOME",why:`Lowest SD among 8+ round sessions: ${bestConsistency.sd.toFixed(1)}`}:{name:"PEAK HUNTER",why:`Highest single round: ${bestRound} skips`};
   return {bestRound,bestRoundSession,bestSession,bestAvg,best3,best5,bestFinish,bestConsistency,hundred,favoriteLength,signature,first,latest,growth:latestAvg-firstAvg,maxStreak};
 }
